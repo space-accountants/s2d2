@@ -36,7 +36,7 @@ def list_central_wavelength_msi():
 
     Returns
     -------
-    df : pandas.dataframe
+    pandas.dataframe
         metadata and general multispectral information about the MSI
         instrument that is onboard Sentinel-2, having the following collumns:
 
@@ -98,7 +98,7 @@ def list_central_wavelength_msi():
     similarly you can also select by pixel resolution:
 
     >>> s2_df = list_central_wavelength_msi()
-    >>> tw_df = s2_df[s2_df['gsd']==20]
+    >>> tw_df = s2_df[s2_df['resolution']==20]
     >>> tw_df.index
     Index(['B05', 'B06', 'B07', 'B8A', 'B11', 'B12'], dtype='object')
 
