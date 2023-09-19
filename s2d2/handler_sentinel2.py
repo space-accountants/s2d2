@@ -18,7 +18,7 @@ import shapely.ops
 from handler_mgrs import get_geom_for_tile_code
 from naming_check import check_mgrs_code
 from handler_xml import get_root_of_table
-from dhdt.generic.handler_dat import get_list_files
+from handler_files import get_list_files
 
 
 def get_s2_dict(s2_df):

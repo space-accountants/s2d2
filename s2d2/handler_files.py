@@ -21,9 +21,8 @@ def get_list_files(dat_path, ending):
 
     Returns
     -------
-    file_list : list
+    list
         collection of file names.
-
     """
     if not os.path.isdir(dat_path):
         dat_path = os.path.dirname(dat_path)

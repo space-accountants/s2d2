@@ -6,18 +6,6 @@ __version__ = "202309"
 __maintainer__ = "B. Altena"
 __email__ = "info at space hyphen accountants dot eu"
 
-"""
-The MGRS tile structure is a follows "AABCC"
-    * "AA" utm zone number, starting from the East, with steps of 8 degrees
-    * "B" latitude zone, starting from the South, with steps of 6 degrees
-    * "CC" 100 km square identifier
-
-The following acronyms are used:
-
-- CRS : coordinate reference system
-- MGRS : US military grid reference system
-- WKT : well known text
-"""
 import re
 
 def check_mgrs_code(tile_code):
