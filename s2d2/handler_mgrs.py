@@ -11,8 +11,12 @@ import numpy as np
 from osgeo import osr
 
 from naming_check import check_mgrs_code
-from dhdt.generic.gis_tools import get_utm_zone
-from dhdt.generic.mapping_tools import ll2map
+from mapping_tools import ll2map, get_utm_zone
+
+def _get_mgrs_abc():
+    mgrsABC = [chr(i) for i in list(range(65,73)) +
+               list(range(74,79)) + list(range(80,91))]
+    return mgrsABC
 
 def get_mgrs_tile(ϕ,λ):
     """ return a military grid reference system zone designation string.
@@ -40,11 +44,11 @@ def get_mgrs_tile(ϕ,λ):
         - CRS : coordinate reference system
         - MGRS : US military grid reference system
         - WKT : well known text
+        - UTM: universal transverse mercator projection
     """
 
     # numbering goes with the alphabet, excluding "O" and "I"
-    mgrsABC = [chr(i) for i in list(range(65,73)) +
-               list(range(74,79)) + list(range(80,91))]
+    mgrsABC = _get_mgrs_abc()
     tile_size = 100. # [km]
     tile_size *= 1E3
 
@@ -83,4 +87,9 @@ def get_mgrs_tile(ϕ,λ):
     mgrs_code = utm_zone + λ_letter + ϕ_letter
     return mgrs_code
 
-#todo: get_geom_for_mgrs_tile
+def get_geom_mgrs_tile(mgrs_code):
+    utm_zone = mgrs_code[:2]
+    λ_letter = mgrs_code[-2]
+    ϕ_letter = mgrs_code[-1]
+
+    return
