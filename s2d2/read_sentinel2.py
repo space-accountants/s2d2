@@ -9,7 +9,6 @@ __email__ = "info at space hyphen accountants dot eu"
 # generic libraries
 import glob
 import os
-import warnings
 
 from xml.etree import ElementTree
 from osgeo import osr
@@ -19,8 +18,6 @@ import pandas as pd
 
 # raster/image libraries
 from PIL import Image, ImageDraw
-from skimage.transform import resize
-from sklearn.neighbors import NearestNeighbors
 from scipy.interpolate import RegularGridInterpolator
 from scipy.ndimage import label
 from scipy.signal import convolve2d
@@ -330,8 +327,8 @@ def read_stack_s2(s2_df):
                                 ' to find the proper file locations')
 
     roi = np.min(s2_df['gsd'].array) # resolution of interest
-    im_scaling = s2_df['gsd'] / roi
-    # start with the highest resolution
+    s2_df = s2_df['gsd']==roi
+    # only import the highest resolution
     for val, idx in enumerate(s2_df.sort_values('gsd').index):
         full_path = s2_df['filepath'][idx] + '.jp2'
         if val==0:
@@ -340,8 +337,6 @@ def read_stack_s2(s2_df):
             if im_stack.ndim==2:
                 im_stack = np.atleast_3d(im_stack)
             band = np.atleast_3d(read_band_s2(full_path)[0])
-            if im_scaling[idx]!=1: # resize image to higher res.
-                band = resize(band, (im_stack.shape[0], im_stack.shape[1]), order=3)
             im_stack = np.concatenate((im_stack, band), axis=2)
 
     # in the meta data files there is no mention of its size, hence include
@@ -982,47 +977,7 @@ def read_view_angles_s2(path, fname='MTD_TL.xml', det_stack=np.array([]),
     I_grd *= (col_sep / col_res)
     J_grd *= (row_sep / row_res)
 
-    Zn, Az = None, None
-    det_grp = np.array([[1,3,5],[2,4,6],[7,9,11],[8,10,12]])
-    for idx, bnd in enumerate(bnd_list):
-        Zn_bnd, Az_bnd = np.zeros((mI, nI)), np.zeros((mI, nI))
-        for i in range(det_grp.shape[0]):
-            Zn_samp = np.squeeze(Zn_grd[:,:,idx,np.isin(det_list, det_grp[i,:])])
-            if Zn_samp.size==0:
-                continue
-
-            if Zn_samp.ndim==3:
-                with warnings.catch_warnings():
-                    warnings.filterwarnings('ignore',
-                                            r'All-NaN (slice|axis) encountered')
-                    Zn_samp = np.nanmax(Zn_samp, axis=2)
-
-            Az_samp = np.squeeze(Az_grd[:,:,idx,np.isin(det_list, det_grp[i,:])])
-            if Az_samp.ndim==3:
-                with warnings.catch_warnings():
-                    warnings.filterwarnings('ignore',
-                                            r'All-NaN (slice|axis) encountered')
-                    Az_samp = np.nanmax(Az_samp, axis=2)
-
-            IN = np.invert(np.isnan(Zn_samp))
-            nbrs = NearestNeighbors(n_neighbors=1, algorithm='kd_tree').fit(
-                np.stack((I_grd[IN], J_grd[IN])).T)
-
-            det_arr = np.isin(det_stack[:,:,idx], det_grp[i, :])
-            det_i, det_j = np.where(det_arr)
-            det_i,det_j = det_i.astype('float64'), det_j.astype('float64')
-
-            _,indices = nbrs.kneighbors(np.stack((det_i,det_j)).T)
-            Zn_bnd[det_arr] = np.squeeze(Zn_samp[IN][indices])
-            Az_bnd[det_arr] = np.squeeze(Az_samp[IN][indices])
-        if Zn is None:
-            Zn, Az = Zn_bnd.copy(), Az_bnd.copy()
-        else:
-            Zn, Az = np.dstack((Zn, Zn_bnd)), np.dstack((Az, Az_bnd))
-
-    Zn, Az = np.ma.array(Zn, mask=det_stack.mask), \
-             np.ma.array(Az, mask=det_stack.mask)
-    return Zn, Az
+    return Zn_grd, Az_grd, I_grd, J_grd
 
 def read_mean_sun_angles_s2(path, fname='MTD_TL.xml'):
     """ Read the xml-file of the Sentinel-2 scene and extract the mean sun angles.
