@@ -345,18 +345,25 @@ def read_stack_s2(s2_df):
          geoTransform = geoTransform + (im_stack.shape[0], im_stack.shape[1])
     return im_stack, spatialRef, geoTransform, targetprj
 
-def get_image_size_s2_from_root(root, resolution=10):
+def _get_geometric_info_from_root(root):
     geom_info = None
     for child in root:
         if child.tag.endswith('Geometric_Info'):
             geom_info = child
     assert(geom_info is not None), ('metadata not in xml file')
+    return geom_info
 
+def _get_frame_from_geometric_info(geom_info):
     frame = None
     for tile in geom_info:
         if tile.tag == 'Tile_Geocoding':
             frame = tile
-    assert(frame is not None), ('metadata not in xml file')
+    assert (frame is not None), ('metadata not in xml file')
+    return frame
+
+def _get_image_size_s2_from_root(root, resolution=10):
+    geom_info = _get_geometric_info_from_root(root)
+    frame = _get_frame_from_geometric_info(geom_info)
 
     m,n = None,None
     for box in frame:
@@ -369,20 +376,10 @@ def get_image_size_s2_from_root(root, resolution=10):
                     n = int(field.text)
     return m, n
 
-def get_ul_coord_s2_from_root(root, resolution=10):
-    geom_info = None
-    for child in root:
-        if child.tag.endswith('Geometric_Info'):
-            geom_info = child
-    assert(geom_info is not None), ('metadata not in xml file')
+def _get_ul_coord_s2_from_root(root, resolution=10):
+    geom_info = _get_geometric_info_from_root(root)
+    frame = _get_frame_from_geometric_info(geom_info)
 
-    frame = None
-    for tile in geom_info:
-        if tile.tag == 'Tile_Geocoding':
-            frame = tile
-    assert(frame is not None), ('metadata not in xml file')
-
-    m,n = None,None
     for box in frame:
         if (box.tag=='Geoposition') and \
             (box.attrib['resolution']==str(resolution)):
@@ -393,18 +390,9 @@ def get_ul_coord_s2_from_root(root, resolution=10):
                     ul_y = float(field.text)
     return ul_x, ul_y
 
-def get_geotransform_s2_from_root(root, resolution=10):
-    geom_info = None
-    for child in root:
-        if child.tag.endswith('Geometric_Info'):
-            geom_info = child
-    assert(geom_info is not None), ('metadata not in xml file')
-
-    frame = None
-    for tile in geom_info:
-        if tile.tag == 'Tile_Geocoding':
-            frame = tile
-    assert(frame is not None), ('metadata not in xml file')
+def _get_geotransform_s2_from_root(root, resolution=10):
+    geom_info = _get_geometric_info_from_root(root)
+    frame = _get_frame_from_geometric_info(geom_info)
 
     for box in frame:
         if (box.tag=='Geoposition') and \
@@ -428,18 +416,9 @@ def get_geotransform_s2_from_root(root, resolution=10):
     geoTransform = (ul_X, d_X, 0., ul_Y, 0., d_Y, m, n)
     return geoTransform
 
-def get_crs_s2_from_root(root):
-    geom_info = None
-    for child in root:
-        if child.tag.endswith('Geometric_Info'):
-            geom_info = child
-    assert(geom_info is not None), ('metadata not in xml file')
-
-    frame = None
-    for tile in geom_info:
-        if tile.tag == 'Tile_Geocoding':
-            frame = tile
-    assert(frame is not None), ('metadata not in xml file')
+def _get_crs_s2_from_root(root):
+    geom_info = _get_geometric_info_from_root(root)
+    frame = _get_frame_from_geometric_info(geom_info)
 
     epsg = None
     for field in frame:
@@ -451,8 +430,33 @@ def get_crs_s2_from_root(root):
     crs.ImportFromEPSG(epsg_int)
     return crs
 
+def _get_orbit_s2_from_root(root):
+    gnrl_info = None
+    for child in root:
+        if child.tag.endswith('General_Info'):
+            gnrl_info = child
+    assert(gnrl_info is not None), ('metadata not in xml file')
+
+    prod_info = None
+    for child in gnrl_info:
+        if child.tag == 'Product_Info':
+            prod_info = child
+    assert(prod_info is not None), ('metadata not in xml file')
+
+    data_take = None
+    for child in prod_info:
+        if child.tag == 'Datatake':
+            data_take = child
+    assert(data_take is not None), ('metadata not in xml file')
+
+    row = None
+    for field in data_take:
+        if field.tag == 'SENSING_ORBIT_NUMBER':
+            row = int(field.text)
+    return row
+
 def read_geotransform_s2(path, fname='MTD_TL.xml', resolution=10):
-    """
+    """ get the mapping transformation of the Sentinel-2 image
 
     Parameters
     ----------
@@ -528,36 +532,15 @@ def read_geotransform_s2(path, fname='MTD_TL.xml', resolution=10):
         return None
     root = get_root_of_table(path, fname)
 
-    geoTransform = get_geotransform_s2_from_root(root, resolution=resolution)
+    geoTransform = _get_geotransform_s2_from_root(root, resolution=resolution)
     return geoTransform
 
 def read_orbit_number_s2(path, fname='MTD_MSIL1C.xml'):
-    """ read the orbit number of the image
+    """ read the orbit number of the Sentinel-2 image from the metadata
 
     """
     root = get_root_of_table(path, fname)
-    gnrl_info = None
-    for child in root:
-        if child.tag.endswith('General_Info'):
-            gnrl_info = child
-    assert(gnrl_info is not None), ('metadata not in xml file')
-
-    prod_info = None
-    for child in gnrl_info:
-        if child.tag == 'Product_Info':
-            prod_info = child
-    assert(prod_info is not None), ('metadata not in xml file')
-
-    data_take = None
-    for child in prod_info:
-        if child.tag == 'Datatake':
-            data_take = child
-    assert(data_take is not None), ('metadata not in xml file')
-
-    row = None
-    for field in data_take:
-        if field.tag == 'SENSING_ORBIT_NUMBER':
-            row = int(field.text)
+    row = _get_orbit_s2_from_root(root)
     return row
 
 def get_local_bbox_in_s2_tile(fname_1, s2dir):
@@ -734,7 +717,7 @@ def read_sun_angles_s2(path, fname='MTD_TL.xml'):
         return None, None
     root = get_root_of_table(path, fname)
 
-    mI,nI = get_image_size_s2_from_root(root)
+    mI,nI = _get_image_size_s2_from_root(root)
     Zn = get_sun_angles_s2_from_root(root, angle='Zenith')[0]
 
     zi = np.linspace(0 - 10, mI + 10, np.size(Zn, axis=0))
@@ -760,17 +743,8 @@ def read_sun_angles_s2(path, fname='MTD_TL.xml'):
     return Zn, Az
 
 def get_view_angles_s2_from_root(root):
-    geom_info = None
-    for child in root:
-        if child.tag.endswith('Geometric_Info'):
-            geom_info = child
-    assert (geom_info is not None), ('metadata not in xml file')
-
-    frame = None
-    for tile in geom_info:
-        if tile.tag == 'Tile_Angles':
-            frame = tile
-    assert (frame is not None), ('metadata not in xml file')
+    geom_info = _get_geometric_info_from_root(root)
+    frame = _get_frame_from_geometric_info(geom_info)
 
     Az_grd,Zn_grd = None, None
     bnd, det = None, None
@@ -803,7 +777,7 @@ def get_view_angles_s2_from_root(root):
             dx = float(field.text)
         elif field.tag == 'ROW_STEP':
             dy = float(field.text)
-    ul_x,ul_y = get_ul_coord_s2_from_root(root)
+    ul_x,ul_y = _get_ul_coord_s2_from_root(root)
 
     geoTransform = (ul_x, dx, 0., ul_y, 0., -dy,
                     Zn_grd.shape[0], Zn_grd.shape[1])
@@ -1261,68 +1235,6 @@ def read_sensing_time_s2(path, fname='MTD_TL.xml'):
         if time_str.endswith('Z'): time_str = time_str[:-1]
         rec_time = np.datetime64(time_str, 'ns')
     return rec_time
-
-def get_timing_mask(s2_df, geoTransform, spatialRef):
-    assert isinstance(geoTransform, tuple)
-    s2_dict = get_s2_dict(s2_df)
-    # get_bearing_from_detector_mask
-    toi = read_sensing_time_s2(s2_dict['MTD_TL_path'])
-    ψ = get_flight_bearing_from_gnss_s2(s2_dict['MTD_DS_path'],
-                                          spatialRef, toi)
-    line_period = read_detector_time_s2(s2_dict['MTD_DS_path'], s2_df=s2_df)[3]
-    s2_dict = get_flight_orientation_s2(s2_dict['MTD_DS_path'],
-                                        s2_dict=s2_dict)
-    s2_dict = get_flight_path_s2(s2_dict['MTD_DS_path'],
-                                 s2_dict=s2_dict)
-
-    det_stack = read_detector_mask(os.path.join(s2_dict['MTD_TL_path'],
-                                                'QI_DATA'),
-                                   s2_df, geoTransform)
-    det_time = read_detector_time_s2(s2_dict['MTD_DS_path'], s2_df=s2_df)[0]
-
-    v_bar = np.mean(s2_dict['velocity']) # mean velocity
-    h_bar = np.mean(s2_dict['altitude']) # mean elevation above ellipsoid
-
-    # create spatial grid, in pixel spacing
-    x_grd, y_grd = np.meshgrid(np.linspace(1, det_stack.shape[1],
-                                           det_stack.shape[1]),
-                               np.linspace(1, det_stack.shape[0],
-                                           det_stack.shape[0]),
-                               indexing='xy')
-
-    # create timing grid and orthogonal frame
-    t_grd = -np.sin(np.deg2rad(ψ)) * x_grd + np.cos(np.deg2rad(ψ)) * y_grd
-    t_grd *= line_period / np.timedelta64(1, 's')
-    o_grd = -np.cos(np.deg2rad(ψ)) * x_grd - np.sin(np.deg2rad(ψ)) * y_grd
-
-    # get relative timing through detector angles
-    Zn, Az = read_view_angles_s2(s2_dict['MTD_TL_path'],
-                                 boi_df=s2_df, det_stack=det_stack)
-
-    vX,vY,vZ = pol2xyz(Az - (ψ + 270), Zn)
-
-    θ = np.rad2deg(np.arctan2(vX, vZ))  # along-track angles
-    Φ = np.rad2deg(np.arctan2(vX, vZ))  # across-track angles
-
-    dT = (np.tan(np.deg2rad(θ)) * h_bar) / v_bar
-
-    det_bias = np.pad(np.mean((np.diff(det_time, axis=0) /
-                               np.timedelta64(1, 's'))[:, 0::2], axis=1),
-                      (1, 0), 'constant', constant_values=(0))
-    for b in range(dT.shape[2]):
-        dT[...,b] += det_bias[b] + t_grd
-
-    # create across-track reference frame, per detector
-    ds = np.diff(det_stack[0, :, 0])
-    prio = np.pad(ds, (0, 1), 'constant', constant_values=(0)).astype(bool)
-
-    o_brd = o_grd[0, prio]  # border of the transition
-    o_min = np.min(o_brd)
-    o_mod = np.mean(np.diff(o_brd))
-
-    o_grd -= o_min
-    Across = np.mod(o_grd, o_mod)
-    return dT, Across, Φ, s2_dict
 
 #todo: robustify
 def get_xy_poly_from_gml(gml_struct,idx):
