@@ -1,6 +1,8 @@
 import numpy as np
 
 def are_two_arrays_equal(A, B):
+    """ check if two arrays have the same dimensions
+    """
     assert type(A) in (np.ma.core.MaskedArray, np.ndarray), \
         ('please provide an array')
     assert type(B) in (np.ma.core.MaskedArray, np.ndarray), \
@@ -10,6 +12,8 @@ def are_two_arrays_equal(A, B):
     return
 
 def are_three_arrays_equal(A, B, C):
+    """ check if three arrays have the same dimensions
+    """
     assert type(A) in (np.ma.core.MaskedArray, np.ndarray), \
         ('please provide an array')
     assert type(B) in (np.ma.core.MaskedArray, np.ndarray), \
