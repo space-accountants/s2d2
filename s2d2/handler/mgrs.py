@@ -10,8 +10,8 @@ import numpy as np
 
 from osgeo import osr
 
-from naming_check import check_mgrs_code
-from mapping_tools import ll2map, get_utm_zone
+from ..checking.naming import check_mgrs_code
+from ..mapping_tools import ll2map, get_utm_zone
 
 def _get_mgrs_abc():
     mgrsABC = [chr(i) for i in list(range(65,73)) +

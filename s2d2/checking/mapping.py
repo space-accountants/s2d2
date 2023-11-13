@@ -6,10 +6,7 @@ __version__ = "202311"
 __maintainer__ = "B. Altena"
 __email__ = "info at space hyphen accountants dot eu"
 
-import re
-
 import numpy as np
-import warnings
 
 from s2d2.unit_conversion import deg2arg
 
@@ -66,9 +63,6 @@ def is_crs_an_srs(crs):
 def correct_geoTransform(geoTransform):
     assert isinstance(geoTransform, tuple), 'geoTransform should be a tuple'
     assert len(geoTransform) in (6,8,), 'geoTransform not of the correct size'
-    if np.hypot(geoTransform[1], geoTransform[2]) != \
-            np.hypot(geoTransform[4], geoTransform[5]):
-        warnings.warn("pixels seem to be rectangular")
     if len(geoTransform)==6:
         assert all(isinstance(n, float) for n in geoTransform)
     else:

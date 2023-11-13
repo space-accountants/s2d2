@@ -15,10 +15,10 @@ import pandas as pd
 import pyproj
 import shapely.ops
 
-from handler_mgrs import get_geom_for_tile_code
-from naming_check import check_mgrs_code
-from handler_xml import get_root_of_table
-from handler_files import get_list_files
+from checking.naming import check_mgrs_code
+from handler.mgrs import get_geom_for_tile_code
+from handler.xml import get_root_of_table
+from handler.files import get_list_files
 
 
 def get_s2_dict(s2_df):

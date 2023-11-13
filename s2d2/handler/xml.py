@@ -12,7 +12,6 @@ from xml.etree import ElementTree
 
 import numpy as np
 
-
 def get_array_from_xml(treeStruc):
     """
     Arrays within a xml structure are given line per line
