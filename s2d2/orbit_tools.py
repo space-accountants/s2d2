@@ -1,13 +1,21 @@
+#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
+__author__ = "Space Accountants"
+__license__ = "MIT License - You must cite this source"
+__version__ = "202311"
+__maintainer__ = "B. Altena"
+__email__ = "info at space hyphen accountants dot eu"
+
 from osgeo import osr
 
 import numpy as np
 import pandas as pd
 
-from dhdt.generic.mapping_tools import pix_centers, map2ll, ecef2llh, ll2map
-from dhdt.generic.unit_check import \
+from .mapping_tools import pix_centers, map2ll, ecef2llh
+from s2d2.checking.mapping import \
     correct_geoTransform, lat_lon_angle_check, is_crs_an_srs
 
-from .check_array import are_two_arrays_equal, are_three_arrays_equal
+from s2d2.checking.array import are_two_arrays_equal, are_three_arrays_equal
 
 def wgs84_param():
     wgs84 = osr.SpatialReference()

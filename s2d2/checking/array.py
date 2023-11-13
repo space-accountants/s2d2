@@ -1,3 +1,11 @@
+#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
+__author__ = "Space Accountants"
+__license__ = "MIT License - You must cite this source"
+__version__ = "202311"
+__maintainer__ = "B. Altena"
+__email__ = "info at space hyphen accountants dot eu"
+
 import numpy as np
 
 def are_two_arrays_equal(A, B):
