@@ -6,13 +6,19 @@ authors:
   -
     family-names: Altena
     given-names: Bas
-    orcid: "https://orcid.org/0000-0000-0000-0000"
-date-released: 20??-MM-DD
-doi: <insert your DOI here>
+    orcid: "https://orcid.org/0000-0001-9025-0326"
+    city: Beetsterzwaag
+    country: NL
+    email: info@space-accountants.eu
+repository-code: 'https://github.com/space-accountants/s2d2'
 version: "0.1.0"
 repository-code: "git@github.com:space-accountants/s2d2"
 keywords:
   - sentinel-2
   - metadata
+  - optical remote sensing
+  - Python
 message: "If you use this software, please cite it using these metadata."
 license: Apache-2.0
+# date-released: '2023-XX-XX'  # update before first release
+# doi: '10.5281/zenodo.0000000'  # update after first release
