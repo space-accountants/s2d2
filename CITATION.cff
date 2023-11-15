@@ -1,7 +1,8 @@
 # YAML 1.2
 ---
 cff-version: "1.2.0"
-title: "s2d2"
+title: >-
+    s2d2: Sentinel-2 data deepening
 authors:
   -
     family-names: Altena
