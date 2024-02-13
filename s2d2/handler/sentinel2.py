@@ -107,7 +107,7 @@ def get_s2_dict(s2_df):
 
     See Also
     --------
-    dhdt.generic.get_s2_image_locations
+    get_s2_image_locations
 
     """
     assert isinstance(s2_df, pd.DataFrame), ('please provide a dataframe')
@@ -254,10 +254,9 @@ def get_generic_s2_raster(tile_code, spac=10, tile_path=None):
         * "B" latitude zone, starting from the South, with steps of 6 degrees
 
     The following acronyms are used:
-
-    - CRS : coordinate reference system
-    - MGRS : US military grid reference system
-    - s2 : Sentinel-2
+        - CRS : coordinate reference system
+        - MGRS : US military grid reference system
+        - s2 : Sentinel-2
     """
     assert spac in (10, 20, 60,), 'please provide correct pixel resolution'
 
@@ -308,6 +307,8 @@ def get_s2_image_locations(fname,s2_df):
     Examples
     --------
     >>> import os
+    >>> from s2d2.handler.sentinel2 import get_s2_image_locations
+
     >>> fpath = '/Users/Data/'
     >>> sname = 'S2A_MSIL1C_20200923T163311_N0209_R140_T15MXV_20200923T200821.SAFE'
     >>> fname = 'MTD_MSIL1C.xml'
@@ -378,6 +379,8 @@ def meta_s2string(s2_str):
 
     Examples
     --------
+    >>> from s2d2.handler.sentinel2 import get_s2_image_locations
+
     >>> s2_str = 'S2A_MSIL1C_20200923T163311_N0209_R140_T15MXV_20200923T200821.SAFE'
     >>> s2_time, s2_orbit, s2_tile = meta_s2string(s2_str)
     >>> s2_time
