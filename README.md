@@ -15,17 +15,31 @@ sentinel-2 data deepening
 
 ## Installation
 
-To install s2d2 from GitHub repository, do:
+Download and access the package folder using `git`:
 
 ```console
-git clone git@github.com:space-accountants/s2d2.git
+git clone https://github.com/space-accountants/s2d2.git
 cd s2d2
-python -m pip install .
+```
+
+The dependencies are most easily installed with `conda` from the `conda-forge` channel (see
+[Miniforge installers](https://github.com/conda-forge/miniforge/releases) for a minimal Conda
+installation). Create and activate a virtual environment with all the required dependencies:
+
+```console
+conda env create -n s2d2 -f environment.yml
+conda activate s2d2
+```
+
+Install `s2d2` using `pip` (add the `-e` option to install in development mode):
+
+```console
+pip install .
 ```
 
 ## Documentation
 
-Include a link to your project's full documentation here.
+Read the full project documentation [here](https://s2d2.readthedocs.io).
 
 ## Contributing
 
