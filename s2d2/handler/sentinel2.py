@@ -308,7 +308,6 @@ def get_s2_image_locations(fname,s2_df):
     --------
     >>> import os
     >>> from s2d2.handler.sentinel2 import get_s2_image_locations
-
     >>> fpath = '/Users/Data/'
     >>> sname = 'S2A_MSIL1C_20200923T163311_N0209_R140_T15MXV_20200923T200821.SAFE'
     >>> fname = 'MTD_MSIL1C.xml'
@@ -379,10 +378,7 @@ def meta_s2string(s2_str):
 
     Examples
     --------
-    >>> from s2d2.handler.sentinel2 import (
-    >>>     get_s2_image_locations, meta_s2string
-    >>> )
-
+    >>> from s2d2.handler.sentinel2 import get_s2_image_locations, meta_s2string
     >>> s2_str = 'S2A_MSIL1C_20200923T163311_N0209_R140_T15MXV_20200923T200821.SAFE'
     >>> s2_time, s2_orbit, s2_tile = meta_s2string(s2_str)
     >>> s2_time

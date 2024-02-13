@@ -93,7 +93,6 @@ def read_geo_image(fname, boi=np.array([]), no_dat=None):
     >>> import os
     >>> from s2d2.mapping_input import read_geo_image
     >>> fpath = os.path.join(os.getcwd(), "data.jp2" )
-
     >>> I, spatialRef, geoTransform, targetPrj = read_geo_image(fpath)
     """
     assert os.path.isfile(fname), ('file does not seem to be present')
