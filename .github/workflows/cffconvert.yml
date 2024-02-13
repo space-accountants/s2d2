@@ -2,11 +2,14 @@ name: cffconvert
 
 on:
   push:
+    paths:
+      - CITATION.cff
+      - .zenodo.json
     branches:
-    - main
+      - main
   pull_request:
     branches:
-    - main
+      - main
 
 jobs:
 

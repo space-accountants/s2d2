@@ -1,13 +1,12 @@
-name: dhdt
+name: s2d2
 channels:
   - conda-forge
 dependencies:
+  - gdal
+  - geopandas
   - numpy
   - pandas
-  - geopandas
-  - scipy
-  - PIL
-  - osgeo
+  - pillow
   - pyproj
+  - scipy
   - shapely
-  - datetime
