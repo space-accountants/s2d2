@@ -10,12 +10,10 @@ import os
 
 import numpy as np
 
-import datetime
-
 # geospatial libaries
 from osgeo import gdal, osr
 
-from dhdt.generic.unit_conversion import deg2compass
+from .unit_conversion import deg2compass
 
 def read_geo_info(fname):
     """ This function takes as input the geotiff name and the path of the

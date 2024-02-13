@@ -13,6 +13,7 @@ Hence, this repository consists of some functionality to enhance the imagery of 
 Functionality
 ^^^^^^^^^^^^^
 
+- consistent import of Sentinel-2 imagery with band specifics
 - observation angles at pixel resolution, for every band
 - flight path reconstruction
 - flight path optimization

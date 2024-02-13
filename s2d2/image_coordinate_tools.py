@@ -71,9 +71,9 @@ def map2pix(geoTransform, x, y):
 
     Returns
     -------
-    i : np.array, ndim={1,2,3}, dtype=float
+    i : np.ndarray, ndim={1,2,3}, dtype=float
         row coordinate(s) in local image space
-    j : np.array, ndim={1,2,3}, dtype=float
+    j : np.ndarray, ndim={1,2,3}, dtype=float
         column coordinate(s) in local image space
 
     See Also
@@ -129,12 +129,12 @@ def pix_centers(geoTransform, rows=None, cols=None, make_grid=True):
 
     Returns
     -------
-    X : np.array, dtype=float
+    X : np.ndarray, dtype=float
          * "make_grid" : size=(m,n)
-         otherwise : size=(1,n)
-    Y : np.array, dtype=float
+         * otherwise : size=(1,n)
+    Y : np.ndarray, dtype=float
          * "make_grid" : size=(m,n)
-         otherwise : size=(m,1)
+         * otherwise : size=(m,1)
 
     See Also
     --------

@@ -1,0 +1,12 @@
+name: dhdt
+channels:
+  - conda-forge
+dependencies:
+  - numpy
+  - pandas
+  - scipy
+  - PIL
+  - osgeo
+  - pyproj
+  - shapely
+  - datetime
