@@ -10,6 +10,15 @@ When top-tier information extraction of Sentinel-2 imagery is needed, the provid
 However documentation or processing procedures to do so, are limited in number.
 Hence, this repository consists of some functionality to enhance the imagery of Sentinel-2 Level-1C data.
 
+Functionality
+^^^^^^^^^^^^^
+
+- observation angles at pixel resolution, for every band
+- flight path reconstruction
+- flight path optimization
+- timestamps at pixel resolution, for every band
+
+
 .. toctree::
   :maxdepth: 2
   :caption: Contents:
