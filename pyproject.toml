@@ -2,20 +2,97 @@
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "s2d2"
+version = "0.1.0"
+dependencies = [
+#  "gdal",
+  "geopandas",
+  "numpy",
+  "pandas",
+  "pillow",
+  "pyproj",
+  "scipy",
+  "shapely",
+]
+description = "Sentinel-2 Data Deepening"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Bas Altena", email = "bas@space-accountants.eu"},
+]
+keywords = ["sentinel-2", "metadata"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
+
+[project.urls]
+repository = "https://github.com/space-accountants/s2d2"
+documentation = "https://s2d2.readthedocs.io"
+changelog = "https://github.com/space-accountants/s2d2/blob/master/CHANGELOG.md"
+#doi = "https://doi.org/10.5281/zenodo.???????"
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-cov",
+    "pycodestyle",
+]
+dev = [
+    "cffconvert",
+    "isort",
+    "prospector[with_pyroma]",
+    "yapf",
+]
+docs = [
+    "myst_parser",
+    "nbsphinx",
+    "recommonmark",
+    "sphinx",
+    "sphinx-autoapi",
+    "sphinx-gallery",
+    "sphinx_rtd_theme",
+]
+
+[tool.setuptools]
+packages = ["s2d2"]
+
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+minversion = "6.0"
+addopts = "--cov --cov-report xml --cov-report term --cov-report html"
+testpaths = [
+    "tests",
+]
 
 [tool.coverage.run]
 branch = true
 source = ["s2d2"]
 command_line = "-m pytest"
 
-[tool.tox]
-legacy_tox_ini = """
-[tox]
-envlist = py37,py38,py39,py310,py311
-skip_missing_interpreters = true
-[testenv]
-commands = pytest
-extras = dev
-"""
+[tool.isort]
+lines_after_imports = 2
+force_single_line = 1
+no_lines_before = [
+    "FUTURE",
+    "STDLIB",
+    "THIRDPARTY",
+    "FIRSTPARTY",
+    "LOCALFOLDER",
+]
+known_first_party = "s2d2"
+src_paths = ["s2d2", "tests"]
+line_length = 120
+
+[tool.style]
+based_on_style = "pep8"
+spaces_before_comment = 4
+split_before_logical_operator = true
+
