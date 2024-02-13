@@ -1,4 +1,4 @@
-name: dhdt
+name: s2d2 
 channels:
   - conda-forge
 dependencies:
