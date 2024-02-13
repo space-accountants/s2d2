@@ -5,6 +5,15 @@ import numpy as np
 
 def are_two_arrays_equal(A, B):
     """ check if two arrays have the same dimensions
+
+    Parameters
+    ----------
+    A, B : {np.ma.array, np.ndarray}
+        arrays of interest
+
+    Returns
+    -------
+    bool, provides True if all sizes are equal
     """
     assert type(A) in (np.ma.core.MaskedArray, np.ndarray), \
         ('please provide an array')
@@ -16,6 +25,15 @@ def are_two_arrays_equal(A, B):
 
 def are_three_arrays_equal(A, B, C):
     """ check if three arrays have the same dimensions
+
+    Parameters
+    ----------
+    A, B, C : {np.ma.array, np.ndarray}
+        arrays of interest
+
+    Returns
+    -------
+    bool, provides True if all sizes are equal
     """
     assert type(A) in (np.ma.core.MaskedArray, np.ndarray), \
         ('please provide an array')
@@ -35,6 +53,15 @@ def are_three_arrays_equal(A, B, C):
 def correct_floating_parameter(a):
     """ sometimes a float is asked for, but this is given in a list, array or
     tuple. This function provides the float that is within
+
+    Parameters
+    ----------
+    a : {np.ma.array, np.ndarray, tuple, list, float, int}
+        float of interest
+
+    Returns
+    -------
+    float, int
     """
     if type(a) in (np.ma.core.MaskedArray, np.ndarray):
         assert a.size == 1, 'please provide one parameter'
