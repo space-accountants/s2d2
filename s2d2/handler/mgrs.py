@@ -12,6 +12,7 @@ import numpy as np
 import geopandas as gpd
 
 from osgeo import osr
+from shapely import wkt
 from shapely.geometry import Polygon, MultiPolygon
 
 from ..checking.naming import check_mgrs_code
@@ -156,7 +157,7 @@ def get_mgrs_tile(ϕ,λ):
     mgrs_code = utm_zone + λ_letter + ϕ_letter
     return mgrs_code
 
-def get_geom_for_tile_code(tile_code, tile_path=None):
+def get_geom_from_tile_code(tile_code, tile_path=None):
     """
     Get the geometry of a certain MGRS tile
 
@@ -171,6 +172,10 @@ def get_geom_for_tile_code(tile_code, tile_path=None):
     -------
     shapely.geometry.polygon.Polygon
         Geometry of the MGRS tile, in lat/lon
+
+    See Also
+    --------
+    .get_tile_code_from_geom, .get_bbox_from_tile_code
     """
     if tile_path is None:
         tile_path = os.path.join(MGRS_TILING_DIR_DEFAULT, MGRS_TILING_FILENAME)
@@ -190,6 +195,49 @@ def get_geom_for_tile_code(tile_code, tile_path=None):
 
     return geom.unary_union
 
+def get_tile_codes_from_geom(geom, tile_path=None):
+    """
+    Get the codes of the MGRS tiles intersecting a given geometry
+
+    Parameters
+    ----------
+    geom : {shapely.geometry, string, dict, GeoDataFrame, GeoSeries}
+        geometry object with the given dict-like geojson geometry, GeoSeries,
+        GeoDataFrame, shapely geometry or well known text, i.e.:
+        'POLYGON ((x y, x y, x y))'
+    tile_path : string
+        Path to the geometric metadata
+
+    Returns
+    -------
+    tuple
+        MGRS tile codes
+
+    See Also
+    --------
+    .get_geom_from_tile_code, .get_bbox_from_tile_code
+    """
+
+    if tile_path is None:
+        tile_path = os.path.join(MGRS_TILING_DIR_DEFAULT, MGRS_TILING_FILENAME)
+
+    # If a wkt str, convert to shapely geometry
+    if isinstance(geom, str):
+        geom = wkt.loads(geom)
+
+    # Uniform CRS
+    if isinstance(geom, gpd.GeoSeries) or isinstance(geom, gpd.GeoDataFrame):
+        example = gpd.read_file(tile_path, rows=1)
+        geom = geom.set_crs(example.crs)
+
+    # Load tiles intersects the search box
+    tiles = gpd.read_file(tile_path, mask=geom)
+
+    # Get the codes in tuple
+    codes = tuple(tiles["Name"])
+
+    return codes
+
 def get_bbox_from_tile_code(tile_code, tile_path=None):
     """
     Get the bounds of a certain MGRS tile
@@ -207,7 +255,7 @@ def get_bbox_from_tile_code(tile_code, tile_path=None):
         bounding box, in the following order: min max X, min max Y
     """
 
-    geom = get_geom_for_tile_code(tile_code, tile_path=tile_path)
+    geom = get_geom_from_tile_code(tile_code, tile_path=tile_path)
 
     toi = geom.bounds
     bbox = np.array([toi[0], toi[2], toi[1], toi[3]])
