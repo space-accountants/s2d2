@@ -1,10 +1,5 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
-__author__ = "Space Accountants"
-__license__ = "MIT License - You must cite this source"
-__version__ = "202309"
-__maintainer__ = "B. Altena"
-__email__ = "info at space hyphen accountants dot eu"
 
 # generic libraries
 import glob

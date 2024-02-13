@@ -1,10 +1,5 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
-__author__ = "Space Accountants"
-__license__ = "MIT License - You must cite this source"
-__version__ = "202311"
-__maintainer__ = "B. Altena"
-__email__ = "info at space hyphen accountants dot eu"
 
 import numpy as np
 
@@ -119,7 +114,7 @@ def datetime2datenum(dt):
 
     Returns
     -------
-    t : {int,numpy.array}
+    t : {int, numpy.array}
         time, in format YYYYMMD
 
     See Also
@@ -158,7 +153,7 @@ def deg2dms(ang):
     deg,min = deg.astype(int), min.astype(int)
     return deg,min,sec
 
-def dms2deg(deg,min,sec):
+def dms2deg(deg, min, sec):
     """ convert degree minutes seconds format to decimal degrees
 
     Parameters

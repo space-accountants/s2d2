@@ -4,6 +4,7 @@
 [![github license badge](https://img.shields.io/github/license/space-accountants/s2d2)](https://github.com/space-accountants/s2d2)
 <!--- [![DOI](https://zenodo.org/badge/DOI/<replace-with-created-DOI>.svg)](https://doi.org/<replace-with-created-DOI>) 
 -->
+[![OpenSSF badge](https://bestpractices.coreinfrastructure.org/projects/8399/badge)](https://bestpractices.coreinfrastructure.org/projects/8399)
 [![fair-software badge](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8B-yellow)](https://fair-software.eu)
 [![workflow scc badge](https://sonarcloud.io/api/project_badges/measure?project=space-accountants_s2d2&metric=coverage)](https://sonarcloud.io/dashboard?id=space-accountants_s2d2)
 [![Documentation Status](https://readthedocs.org/projects/s2d2/badge/?version=latest)](https://s2d2.readthedocs.io/en/latest/?badge=latest)
