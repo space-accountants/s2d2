@@ -313,7 +313,7 @@ def get_s2_image_locations(fname,s2_df):
     >>> sname = 'S2A_MSIL1C_20200923T163311_N0209_R140_T15MXV_20200923T200821.SAFE'
     >>> fname = 'MTD_MSIL1C.xml'
     >>> full_path = os.path.join(fpath, sname, fname)
-    >>> im_paths,datastrip_id = get_s2_image_locations(full_path)
+    >>> im_paths, datastrip_id = get_s2_image_locations(full_path)
     >>> im_paths
     ['GRANULE/L1C_T15MXV_A027450_20200923T163313/IMG_DATA/T15MXV_20200923T163311_B01',
      'GRANULE/L1C_T15MXV_A027450_20200923T163313/IMG_DATA/T15MXV_20200923T163311_B02']
@@ -379,7 +379,9 @@ def meta_s2string(s2_str):
 
     Examples
     --------
-    >>> from s2d2.handler.sentinel2 import get_s2_image_locations
+    >>> from s2d2.handler.sentinel2 import (
+    >>>     get_s2_image_locations, meta_s2string
+    >>> )
 
     >>> s2_str = 'S2A_MSIL1C_20200923T163311_N0209_R140_T15MXV_20200923T200821.SAFE'
     >>> s2_time, s2_orbit, s2_tile = meta_s2string(s2_str)

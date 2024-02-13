@@ -4,6 +4,7 @@ channels:
 dependencies:
   - numpy
   - pandas
+  - geopandas
   - scipy
   - PIL
   - osgeo

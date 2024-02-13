@@ -6,17 +6,86 @@ __version__ = "202309"
 __maintainer__ = "B. Altena"
 __email__ = "info at space hyphen accountants dot eu"
 
+import os
+
 import numpy as np
+import geopandas as gpd
 
 from osgeo import osr
+from shapely.geometry import Polygon, MultiPolygon
 
 from ..checking.naming import check_mgrs_code
 from ..mapping_tools import ll2map, get_utm_zone
+
+MGRS_TILING_URL = ("https://sentinels.copernicus.eu/documents/247904/1955685/"
+                   "S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000"
+                   "_21000101T000000_B00.kml")
+
+MGRS_TILING_FILENAME = 'sentinel2_tiles_world.geojson'
+MGRS_TILING_DIR_DEFAULT = os.path.join('.', 'data', 'MGRS')
+
+def _kml_to_gdf(tile_path):
+    """
+    Read MGRS kml file as a GeoPandas DataFrame, keep only polygon geometries.
+
+    Parameters
+    ----------
+    tile_path : str
+        kml file name
+
+    Returns
+    -------
+    geopandas.geodataframe.GeoDataFrame
+        KML file read as a GeoDataFrame
+    """
+    # Load kml file
+    gdf = gpd.read_file(tile_path, driver="KML")
+
+    # Drop Description, whick is KML specific for visualization
+    gdf = gdf.drop(columns=['Description'])
+
+    # Unpack geometries
+    gdf_exploded = gdf.explode(index_parts=False)
+
+    # Select all entries which are Polygon
+    mask = gdf_exploded["geometry"].apply(lambda x: isinstance(x, Polygon))
+    gdf_out = gdf_exploded.loc[mask]
+
+    return gdf_out
 
 def _get_mgrs_abc():
     mgrsABC = [chr(i) for i in list(range(65,73)) +
                list(range(74,79)) + list(range(80,91))]
     return mgrsABC
+
+def _mgrs_to_search_geometry(tile_code):
+    """
+    Get a geometry from the tile code. The search geometry is a 6-deg longitude
+    stripe, augmented with the stripe across the antimeridian for the tiles
+    that are crossing this line.
+
+    Parameters
+    ----------
+    tile_code : str
+        MGRS code of the tile
+
+    Returns
+    -------
+    shapely.Geometry
+        geometry to restrict the search area
+    """
+    nr_lon = int(tile_code[0:2])  # first two letters indicates longitude range
+    min_lon = -180. + (nr_lon - 1) * 6.
+    max_lon = -180. + nr_lon * 6.
+    geom = Polygon.from_bounds(min_lon, -90.0, max_lon, 90.0)
+    extra = None
+    if nr_lon == 1:
+        extra = Polygon.from_bounds(174, -90.0, 180, 90.0)
+    elif nr_lon == 60:
+        extra = Polygon.from_bounds(-180, -90.0, -174, 90.0)
+    if extra is not None:
+        geom = MultiPolygon(polygons=[geom, extra])
+    return geom
 
 def get_mgrs_tile(ϕ,λ):
     """ return a military grid reference system zone designation string.
@@ -87,9 +156,60 @@ def get_mgrs_tile(ϕ,λ):
     mgrs_code = utm_zone + λ_letter + ϕ_letter
     return mgrs_code
 
-def get_geom_mgrs_tile(mgrs_code):
-    utm_zone = mgrs_code[:2]
-    λ_letter = mgrs_code[-2]
-    ϕ_letter = mgrs_code[-1]
+def get_geom_for_tile_code(tile_code, tile_path=None):
+    """
+    Get the geometry of a certain MGRS tile
 
-    return
+    Parameters
+    ----------
+    tile_code : string
+        MGRS tile coding, e.g.: '05VMG'
+    tile_path : string
+        Path to the geometric metadata
+
+    Returns
+    -------
+    shapely.geometry.polygon.Polygon
+        Geometry of the MGRS tile, in lat/lon
+    """
+    if tile_path is None:
+        tile_path = os.path.join(MGRS_TILING_DIR_DEFAULT, MGRS_TILING_FILENAME)
+
+    tile_code = check_mgrs_code(tile_code)
+
+    # Derive a search geometry from the tile code
+    search_geom = _mgrs_to_search_geometry(tile_code)
+
+    # Load tiles
+    mgrs_tiles = gpd.read_file(tile_path, mask=search_geom)
+
+    geom = mgrs_tiles[mgrs_tiles['Name'] == tile_code]["geometry"]
+
+    if len(geom) == 0:
+        raise ValueError('MGRS tile code does not seem to exist')
+
+    return geom.unary_union
+
+def get_bbox_from_tile_code(tile_code, tile_path=None):
+    """
+    Get the bounds of a certain MGRS tile
+
+    Parameters
+    ----------
+    tile_code : string, e.g.: '05VMG'
+        MGRS tile coding
+    tile_path : string
+        Path to the geometric metadata
+
+    Returns
+    -------
+    numpy.ndarray, size=(1,4), dtype=float
+        bounding box, in the following order: min max X, min max Y
+    """
+
+    geom = get_geom_for_tile_code(tile_code, tile_path=tile_path)
+
+    toi = geom.bounds
+    bbox = np.array([toi[0], toi[2], toi[1], toi[3]])
+    return bbox
+

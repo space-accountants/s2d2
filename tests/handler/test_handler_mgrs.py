@@ -5,8 +5,8 @@ import numpy as np
 from shapely.geometry import Polygon, MultiPolygon
 from shapely import wkt
 
-import dhdt.generic.unit_check
-from dhdt.auxilary import handler_mgrs
+from s2d2.checking.naming import check_mgrs_code
+from s2d2.handler import mgrs
 
 # A subset of original MGRS, sampling every 1500 entries
 TESTDATA_KML = 'testdata/MGRS/mgrs_tiles_tiny.kml'
@@ -38,33 +38,33 @@ def geom_types(wkt_text):
 
 # Data retrieval tests
 def test_mgrs_kml_url_valid():
-    assert urllib.request.urlopen(handler_mgrs.MGRS_TILING_URL).code == 200
+    assert urllib.request.urlopen(mgrs.MGRS_TILING_URL).code == 200
 
 
 def test_kml_to_gdf_output_all_polygon():
-    gdf = handler_mgrs._kml_to_gdf(TESTDATA_KML)
+    gdf = mgrs._kml_to_gdf(TESTDATA_KML)
     assert all([isinstance(geom, Polygon) for geom in gdf["geometry"]])
 
 
 def test_kml_to_gdf_output_same_crs():
     gdf_kml = gpd.read_file(TESTDATA_KML, driver="KML")
-    gdf = handler_mgrs._kml_to_gdf(TESTDATA_KML)
+    gdf = mgrs._kml_to_gdf(TESTDATA_KML)
     assert gdf.crs.equals(gdf_kml.crs)
 
 
 # MGRS query tests
 def test_normalize_mgrs_code_not_str():
     with pytest.raises(TypeError):
-        dhdt.generic.unit_check.check_mgrs_code(123)
+        check_mgrs_code(123)
 
 
 def test_normalize_mgrs_code_wrong_code():
     with pytest.raises(ValueError):
-        dhdt.generic.unit_check.check_mgrs_code('WRONG')
+        check_mgrs_code('WRONG')
 
 
 def test_mgrs_to_search_geometry_range():
-    geom = handler_mgrs._mgrs_to_search_geometry(TILE_CODE)
+    geom = mgrs._mgrs_to_search_geometry(TILE_CODE)
     assert geom == Polygon.from_bounds(120.0, -90.0, 126.0, 90.0)
 
 
