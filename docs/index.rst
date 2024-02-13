@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to s2d2's documentation!
-==========================================================
+S2D2 - Sentinel-2 data deepening documentation
+==============================================
 
 .. toctree::
   :maxdepth: 2
