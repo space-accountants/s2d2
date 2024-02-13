@@ -36,3 +36,19 @@ def are_three_arrays_equal(A, B, C):
     assert len(set({A.ndim, B.ndim, C.ndim})) == 1, \
          ('please provide arrays of the same dimension')
     return
+
+def correct_floating_parameter(a):
+    """ sometimes a float is asked for, but this is given in a list, array or
+    tuple. This function provides the float that is within
+    """
+    if type(a) in (np.ma.core.MaskedArray, np.ndarray):
+        assert a.size == 1, 'please provide one parameter'
+        a = a[0]
+    if type(a) in (list, tuple):
+        assert len(a) == 1, 'please provide one parameter'
+        a = a[0]
+
+    assert isinstance(a, (int, float)), 'please provide an integer'
+    if isinstance(a, int):
+        a = float(a)
+    return a

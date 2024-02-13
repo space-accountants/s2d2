@@ -11,7 +11,8 @@ from osgeo import osr
 import numpy as np
 import pandas as pd
 
-from .mapping_tools import pix_centers, map2ll, ecef2llh
+from .image_coordinate_tools import pix_centers
+from .mapping_tools import map2ll, ecef2llh
 from s2d2.checking.mapping import \
     correct_geoTransform, lat_lon_angle_check, is_crs_an_srs
 

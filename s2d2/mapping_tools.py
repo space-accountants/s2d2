@@ -31,6 +31,7 @@ def ll2map(ll, spatialRef):
     --------
     Get the Universal Transverse Mercator (UTM) cooridnates from spherical
     coordinates:
+
     >>> import numpy as np
     >>> from osgeo import osr
     >>> proj = osr.SpatialReference()
@@ -54,6 +55,63 @@ def ll2map(ll, spatialRef):
     xy = coordTrans.TransformPoints(list(ll))
     xy = np.stack(xy, axis=0)
     return xy
+
+def map2ll(xy, spatialRef):
+    """ transforms map coordinates (that is 2D) in a projection frame to angles
+
+    Parameters
+    ----------
+    xy : np.array, size=(m,2), unit=meter
+        np.array with 2D coordinates. In the following form:
+        [[x, y], [x, y], ... ]
+    spatialRef : osgeo.osr.SpatialReference
+        target projection system
+
+    Returns
+    -------
+    ll : np.array, size=(m,2), unit=(deg,deg)
+        np.array with spherical coordinates. In the following form:
+        [[lat, lon], [lat, lon], ... ]
+    """
+    if isinstance(spatialRef, str):
+        spatialStr = spatialRef
+        spatialRef = osr.SpatialReference()
+        spatialRef.ImportFromWkt(spatialStr)
+    llSpatialRef = osr.SpatialReference()
+    llSpatialRef.ImportFromEPSG(4326)
+
+    coordTrans = osr.CoordinateTransformation(spatialRef, llSpatialRef)
+    ll = coordTrans.TransformPoints(list(xy))
+    ll = np.stack(ll, axis=0)
+    return ll[:, :-1]
+
+def ecef2llh(xyz):
+    """ transform 3D cartesian Earth Centered Earth fixed coordinates, to
+    spherical angles and height above the ellipsoid
+
+    Parameters
+    ----------
+    xyz : np.array, size=(m,3), unit=meter
+        np.array with 3D coordinates, in WGS84. In the following form:
+        [[x, y, z], [x, y, z], ... ]
+
+    Returns
+    -------
+    llh : np.array, size=(m,2), unit=(deg,deg,meter)
+        np.array with angles and height. In the following form:
+        [[lat, lon, height], [lat, lon, height], ... ]
+    """
+
+    ecefSpatialRef = osr.SpatialReference()
+    ecefSpatialRef.ImportFromEPSG(4978)
+
+    llhSpatialRef = osr.SpatialReference()
+    llhSpatialRef.ImportFromEPSG(4979)
+
+    coordTrans = osr.CoordinateTransformation(ecefSpatialRef, llhSpatialRef)
+    llh = coordTrans.TransformPoints(list(xyz))
+    llh = np.stack(llh, axis=0)
+    return llh
 
 def get_utm_zone(ϕ, λ):
     """ get the UTM zone for a specific location
