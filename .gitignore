@@ -13,6 +13,7 @@ htmlcov
 coverage.xml
 .pytest_cache
 .tox
+pylint-report.txt
 
 docs/_build
 
