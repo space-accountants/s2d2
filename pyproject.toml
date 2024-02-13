@@ -67,7 +67,6 @@ packages = ["s2d2"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--cov --cov-report term --cov-report xml --junitxml=xunit-result.xml"
 testpaths = [
     "tests",
 ]
