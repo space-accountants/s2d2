@@ -1,13 +1,12 @@
-name: s2d2 
+name: s2d2
 channels:
   - conda-forge
 dependencies:
-  - numpy
-  - pandas
   - geopandas
-  - scipy
-  - PIL
+  - numpy
   - osgeo
+  - pandas
+  - PIL
   - pyproj
+  - scipy
   - shapely
-  - datetime
