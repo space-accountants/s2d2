@@ -4,13 +4,19 @@ cff-version: "1.2.0"
 title: >-
     s2d2: Sentinel-2 data deepening
 authors:
-  -
-    family-names: Altena
+  - family-names: Altena
     given-names: Bas
     orcid: "https://orcid.org/0000-0001-9025-0326"
     city: Beetsterzwaag
     country: NL
     email: info@space-accountants.eu
+  - given-names: Francesco
+    family-names: Nattino
+    email: f.nattino@esciencecenter.nl
+    affiliation: Netherlands eScience Center
+    city: Amsterdam
+    country: NL
+    orcid: 'https://orcid.org/0000-0003-3286-0139'
 repository-code: 'https://github.com/space-accountants/s2d2'
 version: "0.1.0"
 repository-code: "git@github.com:space-accountants/s2d2"
@@ -21,5 +27,5 @@ keywords:
   - Python
 message: "If you use this software, please cite it using these metadata."
 license: Apache-2.0
-# date-released: '2023-XX-XX'  # update before first release
+# date-released: '2024-XX-XX'  # update before first release
 # doi: '10.5281/zenodo.0000000'  # update after first release
