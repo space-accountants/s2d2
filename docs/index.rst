@@ -6,6 +6,10 @@
 S2D2 - Sentinel-2 data deepening documentation
 ==============================================
 
+When top-tier information extraction of Sentinel-2 imagery is needed, the provided metadata is essential.
+However documentation or processing procedures to do so, are limited in number.
+Hence, this repository consists of some functionality to enhance the imagery of Sentinel-2 Level-1C data.
+
 .. toctree::
   :maxdepth: 2
   :caption: Contents:
