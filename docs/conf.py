@@ -11,9 +11,12 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+
+here = os.path.dirname(__file__)
+root = os.path.abspath(os.path.join(here, '..'))
+sys.path.insert(0, root)
 
 # -- Project information -----------------------------------------------------
 
@@ -80,9 +83,9 @@ html_theme = "sphinx_rtd_theme"
 
 intersphinx_mapping = {'python': ('https://docs.python.org/3', None),
                        # Commonly used libraries, uncomment when used in package
-                       # 'numpy': ('http://docs.scipy.org/doc/numpy/', None),
+                       'numpy': ('http://docs.scipy.org/doc/numpy/', None),
                        # 'scipy': ('http://docs.scipy.org/doc/scipy/reference/', None),
                        # 'scikit-learn': ('https://scikit-learn.org/stable/', None),
                        # 'matplotlib': ('https://matplotlib.org/stable/', None),
-                       # 'pandas': ('http://pandas.pydata.org/docs/', None),
+                       'pandas': ('http://pandas.pydata.org/docs/', None),
                        }
