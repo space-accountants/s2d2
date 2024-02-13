@@ -19,6 +19,7 @@
   "license": {
     "id": "Apache-2.0"
   },
+  "publication_date": "2023-02-13",
   "title": "s2d2: Sentinel-2 data deepening",
   "version": "0.1.0"
 }

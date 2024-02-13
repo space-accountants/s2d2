@@ -26,5 +26,5 @@ keywords:
   - Python
 message: "If you use this software, please cite it using these metadata."
 license: Apache-2.0
-# date-released: '2024-XX-XX'  # update before first release
-# doi: '10.5281/zenodo.0000000'  # update after first release
+date-released: '2024-02-13'
+doi: '10.5281/zenodo.10654892'
