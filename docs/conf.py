@@ -62,6 +62,9 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
 
+# Mock imports to avoid installing GDAL where conda is not available
+autodoc_mock_imports = ["osgeo"]
+
 # -- Use autoapi.extension to run sphinx-apidoc -------
 
 autoapi_dirs = ['../s2d2']
