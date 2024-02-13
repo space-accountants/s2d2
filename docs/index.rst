@@ -21,8 +21,10 @@ Functionality
 
 
 .. toctree::
-  :maxdepth: 2
-  :caption: Contents:
+  :maxdepth: 3
+  :caption: Library
+
+  modules
 
 Indices and tables
 ==================
