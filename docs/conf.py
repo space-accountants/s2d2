@@ -67,7 +67,7 @@ autodoc_mock_imports = ["osgeo"]
 
 # -- Use autoapi.extension to run sphinx-apidoc -------
 
-autoapi_dirs = ['../s2d2']
+# autoapi_dirs = ['../s2d2']
 
 # -- Options for HTML output ----------------------------------------------
 

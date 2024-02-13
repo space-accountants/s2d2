@@ -176,6 +176,60 @@ def pix_centers(geoTransform, rows=None, cols=None, make_grid=True):
         x_dummy, y = pix2map(geoTransform, i, np.repeat(j[0], len(i)))
         return x, y
 
+def get_bbox(geoTransform, rows=None, cols=None):
+    """ given array meta data, calculate the bounding box
+
+    Parameters
+    ----------
+    geoTransform : tuple, size=(6,)
+        georeference transform of an image.
+    rows : integer, {x ∈ ℕ | x ≥ 0}
+        amount of rows in an image.
+    cols : integer, {x ∈ ℕ | x ≥ 0}
+        amount of collumns in an image.
+
+    Returns
+    -------
+    bbox : np.ndarray, size=(4,), dtype=float
+        bounding box, in the following order: min max X, min max Y
+
+    See Also
+    --------
+    map2pix, pix2map, pix_centers
+
+    Notes
+    -----
+    Two different coordinate system are used here:
+
+        .. code-block:: text
+
+          indexing   |           indexing    ^ y
+          system 'ij'|           system 'xy' |
+                     |                       |
+                     |       i               |       x
+             --------+-------->      --------+-------->
+                     |                       |
+                     |                       |
+          image      | j         map         |
+          based      v           based       |
+
+    """
+    geoTransform = correct_geoTransform(geoTransform)
+    if rows is None:
+        assert len(geoTransform) >= 8, ('please provide raster information')
+        rows, cols = geoTransform[6], geoTransform[7]
+
+    X = geoTransform[0] + \
+        np.array([0, cols]) * geoTransform[1] + np.array([0, rows]) * \
+        geoTransform[2]
+
+    Y = geoTransform[3] + \
+        np.array([0, cols]) * geoTransform[4] + np.array([0, rows]) * \
+        geoTransform[5]
+
+    bbox = np.hstack((np.sort(X), np.sort(Y)))
+    return bbox
+
 def create_local_crs():
     """ create spatial refence of local horizontal datum
 

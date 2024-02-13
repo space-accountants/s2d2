@@ -17,11 +17,10 @@ from scipy.interpolate import RegularGridInterpolator
 from scipy.ndimage import label
 from scipy.signal import convolve2d
 
-from handler_sentinel2 import get_s2_dict
-from handler_xml import get_array_from_xml, get_root_of_table
-from dhdt.generic.mapping_tools import \
-    map2pix, ecef2map, ecef2llh, get_bbox, pol2xyz, make_same_size
-from mapping_input import read_geo_image, read_geo_info
+from s2d2.handler.xml import get_array_from_xml, get_root_of_table
+from s2d2.mapping_input import read_geo_image, read_geo_info
+from s2d2.image_coordinate_tools import map2pix, get_bbox
+from s2d2.checking.array import make_same_size
 
 def list_central_wavelength_msi():
     """ create dataframe with metadata about Sentinel-2
@@ -1157,7 +1156,7 @@ def read_detector_mask(path_meta, boi, geoTransform):
             if det_stack is None:
                 det_stack = np.zeros((*msk.shape[:2], len(boi)), dtype='int8')
             if mskTransform!=geoTransform:
-                msk = make_same_size(msk,mskTransform, geoTransform)
+                msk = make_same_size(msk, mskTransform, geoTransform)
             det_stack[..., i] = msk
 
     det_stack = np.ma.array(det_stack, mask=det_stack==0)

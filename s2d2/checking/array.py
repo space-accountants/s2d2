@@ -3,6 +3,8 @@
 
 import numpy as np
 
+from s2d2.checking.mapping import correct_geoTransform
+
 def are_two_arrays_equal(A, B):
     """ check if two arrays have the same dimensions
 
@@ -74,3 +76,74 @@ def correct_floating_parameter(a):
     if isinstance(a, int):
         a = float(a)
     return a
+
+def make_same_size(Old,
+                   geoTransform_old,
+                   geoTransform_new,
+                   rows_new=None,
+                   cols_new=None):
+    """ clip array to the same size as another array
+
+    Parameters
+    ----------
+    Old : np.array, size=(m,n), dtype={float, complex}
+        data array to be clipped.
+    geoTransform_old : tuple, size={(6,), (8,)}
+        georeference transform of the old image.
+    geoTransform_new : tuple, size={(6,), (8,)}
+        georeference transform of the new image.
+    rows_new : integer, {x ∈ ℕ | x ≥ 0}
+        amount of rows of the new image.
+    cols_new : integer, {x ∈ ℕ | x ≥ 0}
+        amount of collumns of the new image.
+
+    Returns
+    -------
+    New : np.array, size=(k,l), dtype={float,complex}
+        clipped data array.
+    """
+    geoTransform_old = correct_geoTransform(geoTransform_old)
+    geoTransform_new = correct_geoTransform(geoTransform_new)
+
+    if len(geoTransform_new) == 8:
+        rows_new, cols_new = geoTransform_new[-2], geoTransform_new[-1]
+
+    # look at upper left coordinate
+    dj = np.round(
+        (geoTransform_new[0] - geoTransform_old[0]) / geoTransform_new[1])
+    di = np.round(
+        (geoTransform_new[3] - geoTransform_old[3]) / geoTransform_new[1])
+
+    if np.sign(dj) == -1:  # extend array by simple copy of border values
+        Old = np.concatenate((np.repeat(
+            np.expand_dims(Old[:, 0], axis=1), abs(dj), axis=1), Old),
+                             axis=1)
+    elif np.sign(dj) == 1:  # reduce array
+        Old = Old[:, abs(dj).astype(int):]
+
+    if np.sign(di) == -1:  # reduce array
+        Old = Old[abs(di).astype(int):, :]
+    elif np.sign(di) == 1:  # extend array by simple copy of border values
+        Old = np.concatenate((np.repeat(
+            np.expand_dims(Old[0, :], axis=1).T, abs(di), axis=0), Old),
+                             axis=0)
+
+    # as they are now alligned, look at the lower right corner
+    di, dj = rows_new - Old.shape[0], cols_new - Old.shape[1]
+
+    if np.sign(dj) == -1:  # reduce array
+        Old = Old[:, :dj]
+    elif np.sign(dj) == 1:  # extend array by simple copy of border values
+        Old = np.concatenate((np.repeat(
+            Old, np.expand_dims(Old[:, -1], axis=1), abs(dj), axis=1)),
+                             axis=1)
+
+    if np.sign(di) == -1:  # reduce array
+        Old = Old[:di, :]
+    elif np.sign(di) == 1:  # extend array by simple copy of border values
+        Old = np.concatenate((np.repeat(
+            Old, np.expand_dims(Old[-1, :], axis=1).T, abs(di), axis=0)),
+                             axis=0)
+
+    New = Old
+    return New
