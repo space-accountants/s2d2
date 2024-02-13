@@ -113,6 +113,32 @@ def ecef2llh(xyz):
     llh = np.stack(llh, axis=0)
     return llh
 
+def ecef2map(xyz, spatialRef):
+    """ transform 3D cartesian Earth Centered Earth fixed coordinates, to
+    map coordinates (that is 2D) in a projection frame
+
+    Parameters
+    ----------
+    xyz : np.array, size=(m,3), float
+        np.array with 3D coordinates, in WGS84. In the following form:
+        [[x, y, z], [x, y, z], ... ]
+    spatialRef : osgeo.osr.SpatialReference
+        target projection
+
+    Returns
+    -------
+    xyz : np.array, size=(m,2), float
+        np.array with planar coordinates, within a given projection frame
+    """
+    if isinstance(spatialRef, str):
+        spatialStr = spatialRef
+        spatialRef = osr.SpatialReference()
+        spatialRef.ImportFromWkt(spatialStr)
+
+    llh = ecef2llh(xyz)  # get spherical coordinates and height
+    xy = ll2map(llh[:, :-1], spatialRef)
+    return xy
+
 def get_utm_zone(ϕ, λ):
     """ get the UTM zone for a specific location
 

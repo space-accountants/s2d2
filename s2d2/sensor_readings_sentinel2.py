@@ -8,6 +8,9 @@ __email__ = "info at space hyphen accountants dot eu"
 
 import numpy as np
 
+from s2d2.handler.xml import get_root_of_table
+from s2d2.mapping_tools import ecef2llh, ecef2map
+
 def get_flight_bearing_from_gnss_s2(path, spatialRef, rec_tim,
                                     fname='MTD_DS.xml'):
     """ get the direction/argument/heading of the Sentinel-2 acquisition
@@ -118,14 +121,16 @@ def get_flight_path_s2(ds_path, fname='MTD_DS.xml', s2_dict=None):
 
     >>> import os
     >>> import numpy as np
+    >>> from s2d2.read_sentinel2 import list_central_wavelength_msi
+    >>> from s2d2.handler.sentinel2 import get_s2_image_locations
 
-    >>> S2_dir = '/data-dump/examples/'
-    >>> S2_name = 'S2A_MSIL1C_20200923T163311_N0209_R140_T15MXV_20200923T200821.SAFE'
-    >>> fname = os.path.join(S2_dir, S2_name, 'MTD_MSIL1C.xml')
+    >>> s2_dir = '/data-dump/examples/'
+    >>> s2_name = 'S2A_MSIL1C_20200923T163311_N0209_R140_T15MXV_20200923T200821.SAFE'
+    >>> fname = os.path.join(s2_dir, s2_name, 'MTD_MSIL1C.xml')
     >>> s2_df = list_central_wavelength_s2()
 
-    >>> s2_df, datastrip_id = get_s2_image_locations(fname, s2_df)
-    >>> path_det = os.path.join(S2_dir, S2_name, 'DATASTRIP', datastrip_id[17:-7])
+    >>> s2_df, datastrip = get_s2_image_locations(fname, s2_df)
+    >>> path_det = os.path.join(s2_dir, s2_name, 'DATASTRIP', datastrip[17:-7])
 
     >>> sat_tim, sat_xyz, sat_err, sat_uvw = get_flight_path_s2(path_det)
 
@@ -241,6 +246,7 @@ def get_flight_orientation_s2(ds_path, fname='MTD_DS.xml', s2_dict=None):
         filename of the meta-data file
     s2_dict : dictonary, default=None
         metadata of the Sentinel-2 platform
+
     Returns
     -------
     sat_time : numpy.array, size=(m,1), unit=nanosec
