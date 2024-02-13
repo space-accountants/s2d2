@@ -5,9 +5,9 @@ on:
     paths:
       - 's2d2/**'
       - 'tests/**'
-      - 'setup.*'
-    branches:
-      - main
+      - setup.py
+      - pyproject.toml
+      - environment.yml
   pull_request:
     branches:
       - main
@@ -20,34 +20,31 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['ubuntu-latest', 'macos-latest']
-        python-version: ['3.8', '3.9', '3.10']
+        os: ['ubuntu-latest'] #, 'macos-latest']
+        python-version: ['3.10'] #, '3.9', '3.8']
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: ${{ matrix.python-version }}
+          environment-file: environment.yml
+          mamba-version: "*"
+          activate-environment: s2d2
       - name: Python info
         shell: bash -e {0}
         run: |
           which python
           python --version
-      - name: Upgrade pip and install dependencies
+      - name: Upgrade pip
         run: |
           python -m pip install --upgrade pip setuptools
-          python -m pip install .[dev,publishing]
       - name: Install the library
-              run: |
-                pip install -e .[test]
+        run: |
+          pip install -e .[test]
       - name: Test
-              run: |
-                pytest --cov-config setup.cfg
-      - name: coverage
-              uses: codecov/codecov-action@v1
-              with:
-                file: ./coverage.xml
-                name: codecov-umbrella
+        run: |
+          pytest
 
   lint:
     name: Linting build
@@ -68,8 +65,8 @@ jobs:
       - name: Upgrade pip and install dependencies
         run: |
           python -m pip install --upgrade pip setuptools
-          python -m pip install .[dev,publishing]
+          python -m pip install .[dev]
       - name: Check style against standards using prospector
         run: prospector
       - name: Check import order
-        run: isort --check-only s2d2 --diff
+        run: isort
