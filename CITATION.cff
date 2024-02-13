@@ -19,7 +19,6 @@ authors:
     orcid: 'https://orcid.org/0000-0003-3286-0139'
 repository-code: 'https://github.com/space-accountants/s2d2'
 version: "0.1.0"
-repository-code: "git@github.com:space-accountants/s2d2"
 keywords:
   - sentinel-2
   - metadata

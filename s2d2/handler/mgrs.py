@@ -6,12 +6,15 @@ import os
 import numpy as np
 import geopandas as gpd
 
+from fiona.drvsupport import supported_drivers
 from osgeo import osr
 from shapely import wkt
 from shapely.geometry import Polygon, MultiPolygon
 
 from ..checking.naming import check_mgrs_code
 from ..mapping_tools import ll2map, get_utm_zone
+
+supported_drivers['KML'] = 'rw'
 
 MGRS_TILING_URL = ("https://sentinels.copernicus.eu/documents/247904/1955685/"
                    "S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000"
