@@ -50,15 +50,6 @@ def list_central_wavelength_msi():
             * solar_illumination, unit=W m-2 µm-1 :
         mostly following the naming convension of the STAC EO extension [stac]_
 
-    See Also
-    --------
-    read_landsat.list_central_wavelength_oli :
-        for the instrument data of Landsat 8 or 9
-    read_aster.list_central_wavelength_as :
-        for the instrument data of ASTER on the Terra satellite
-    read_venus.list_central_wavelength_vssc :
-        for the instrument data of VSSC on the VENµS satellite
-
     Notes
     -----
     The Multi Spectral instrument (MSI) has a Tri Mirror Anastigmat (TMA)
@@ -80,6 +71,8 @@ def list_central_wavelength_msi():
 
     Examples
     --------
+    >>> from s2d2.read_sentinel2 import list_central_wavelength_msi
+
     make a selection by name:
 
     >>> boi = ['red', 'green', 'blue', 'near infrared']
@@ -248,12 +241,17 @@ def read_band_s2(path, band=None):
 
     See Also
     --------
-    list_central_wavelength_msi : creates a dataframe for the MSI instrument
-    read_stack_s2 : reading several Sentinel-2 bands at once into a stack
-    dhdt.generic.read_geo_image : basic function to import geographic imagery data
+    list_central_wavelength_msi :
+        creates a dataframe for the MSI instrument
+    read_stack_s2 :
+        reading several Sentinel-2 bands at once into a stack
+    s2d2.mapping_input.read_geo_image :
+        basic function to import geographic imagery data
 
     Examples
     --------
+    >>> from s2d2.read_sentinel2 import read_band_s2
+
     >>> path = '/GRANULE/L1C_T15MXV_A027450_20200923T163313/IMG_DATA/'
     >>> band = '02'
     >>> _,spatialRef,geoTransform,targetprj = read_band_s2(path, band)
@@ -299,7 +297,7 @@ def read_stack_s2(s2_df):
 
     Returns
     -------
-    im_stack : numpy.array, size=(_,_,_)
+    im_stack : numpy.ndarray, ndim=3
         array of the band image
     spatialRef : string
         projection
@@ -310,9 +308,12 @@ def read_stack_s2(s2_df):
 
     See Also
     --------
-    list_central_wavelength_msi : creates a dataframe for the MSI instrument
-    get_s2_image_locations : provides dataframe with specific file locations
-    read_band_s2 : reading a single Sentinel-2 band
+    list_central_wavelength_msi :
+        creates a dataframe for the MSI instrument
+    get_s2_image_locations :
+        provides dataframe with specific file locations
+    read_band_s2 :
+        reading a single Sentinel-2 band
 
     Examples
     --------
@@ -471,6 +472,11 @@ def read_geotransform_s2(path, fname='MTD_TL.xml', resolution=10):
     -------
     geoTransform : tuple, size=(1,6)
         affine transformation coefficients
+
+    See Also
+    --------
+    s2d2.image_coordinate_tools.map2pix : transform map- to image-coordinates
+    s2d2.image_coordinate_tools.map2pix : transform image- to map-coordinates
 
     Notes
     -----
@@ -1098,6 +1104,10 @@ def read_detector_mask(path_meta, boi, geoTransform):
 
     Examples
     --------
+    >>> from s2d2.read_sentinel2 import (
+    >>>    list_central_wavelength_msi, read_detector_mask
+    >>> )
+
     >>> path_meta = '/GRANULE/L1C_T15MXV_A027450_20200923T163313/QI_DATA'
     >>> boi = ['red', 'green', 'blue', 'near infrared']
     >>> s2_df = list_central_wavelength_msi()
@@ -1213,6 +1223,9 @@ def read_sensing_time_s2(path, fname='MTD_TL.xml'):
     demonstrate the code when in a Scihub data structure
 
     >>> import os
+    >>> from s2d2.handler.sentinel2 import get_s2_image_locations
+    >>> from s2d2.read_sentinel2 import read_sensing_time_s2
+
     >>> fpath = '/Users/Data/'
     >>> sname = 'S2A_MSIL1C_20200923T163311_N0209_R140_T15MXV_20200923T200821.SAFE'
     >>> fname = 'MTD_MSIL1C.xml'
