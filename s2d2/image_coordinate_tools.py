@@ -1,5 +1,7 @@
 import numpy as np
 
+from osgeo import osr
+
 from .checking.mapping import correct_geoTransform
 from .checking.array import are_two_arrays_equal, correct_floating_parameter
 
@@ -173,3 +175,20 @@ def pix_centers(geoTransform, rows=None, cols=None, make_grid=True):
         x, y_dummy = pix2map(geoTransform, np.repeat(i[0], len(j)), j)
         x_dummy, y = pix2map(geoTransform, i, np.repeat(j[0], len(i)))
         return x, y
+
+def create_local_crs():
+    """ create spatial refence of local horizontal datum
+
+    Returns
+    -------
+    crs : {osr.SpatialReference, string}
+        the coordinate reference system via GDAL SpatialReference description
+
+    See Also
+    --------
+    s2d2.checking.mapping.is_crs_an_srs
+    """
+    crs = osr.SpatialReference()
+    crs.ImportFromEPSG(8377)
+
+    return crs
