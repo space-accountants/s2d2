@@ -4,6 +4,7 @@
 import os
 
 from osgeo import osr
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
@@ -152,13 +153,13 @@ def _get_safe_structure_s2(im_path, s2_dict=None):
         'please make sure MTD_TL.xml is present in the directory'
 
     safe_folder = _get_safe_foldername(im_path)
-    s2_time, s2_orbit, s2_tile = meta_s2string(safe_folder)
+    s2_date, s2_orbit, s2_tile = meta_s2string(safe_folder)
     s2_dict.update({'full_path': safe_path,
                     'MTD_DS_path': ds_path,
                     'MTD_TL_path': tl_path,
                     'IMG_DATA_path': os.path.join(tl_path, 'IMG_DATA'),
                     'QI_DATA_path': os.path.join(tl_path, 'QI_DATA'),
-                    'date': s2_time,
+                    'date': s2_date.strftime("+%Y-%m-%d"),
                     'tile_code': s2_tile[1:],
                     'relative_orbit': int(s2_orbit[1:])})
     return s2_dict
@@ -259,13 +260,14 @@ def get_generic_s2_raster(tile_code, spac=10, tile_path=None):
     geom = get_geom_for_tile_code(tile_code, tile_path=tile_path)
 
     # specify coordinate systems
-    crs = pyproj.CRS.from_epsg(4326)  # lat lon
     epsg = get_epsg_from_mgrs_tile(tile_code)
     crs_utm = pyproj.CRS.from_epsg(epsg)
 
     # reproject and round off
     transformer = pyproj.Transformer.from_crs(
-        crs_from=crs, crs_to=crs_utm, always_xy=True
+        crs_from=pyproj.CRS.from_epsg(4326),
+        crs_to=crs_utm,
+        always_xy=True
     )
     geom_utm = shapely.ops.transform(transformer.transform, geom)
     # geom can still be a multipolygon for tiles crossing the antimeridian
@@ -274,10 +276,15 @@ def get_generic_s2_raster(tile_code, spac=10, tile_path=None):
     x, y = np.round(np.array(xx)/spac)*spac, np.round(np.array(yy)/spac)*spac
 
     spac = float(spac)
-    nx = int(np.round(np.ptp(x)/spac))
-    ny = int(np.round(np.ptp(y)/spac))
-    geoTransform = (np.min(x), +spac, 0., np.max(y), 0., -spac, ny, nx)
-    return geoTransform, crs_utm
+    # typical geotransform
+    geotransform = (np.min(x), +spac, 0., np.max(y), 0., -spac, ny, nx)
+
+    # also include dimensions
+    geotransform = geotransform + (
+        int(np.round(np.ptp(y)/spac)),
+        int(np.round(np.ptp(x)/spac)),
+    )
+    return geotransform, crs_utm
 
 def get_s2_image_locations(fname,s2_df):
     """
@@ -322,7 +329,7 @@ def get_s2_image_locations(fname,s2_df):
     for att in root.iter('Granule'):
         datastrip_full = att.get('datastripIdentifier')
         datastrip_id = '_'.join(datastrip_full.split('_')[4:-1])
-    assert datastrip_id != None, ('metafile does not have required info')
+    assert datastrip_id is not None, ('metafile does not have required info')
 
     im_paths, band_id = [], []
     for im_loc in root.iter('IMAGE_FILE'):
@@ -346,7 +353,7 @@ def get_s2_image_locations(fname,s2_df):
     s2_df_new = pd.concat([s2_df, band_path], axis=1, join="inner")
     return s2_df_new, datastrip_id
 
-def get_s2_granule_id(fname, s2_df):
+def get_s2_granule_id(fname):
     assert os.path.isfile(fname), ('metafile does not seem to be present')
     root = get_root_of_table(fname)
 
@@ -364,8 +371,8 @@ def meta_s2string(s2_str):
 
     Returns
     -------
-    s2_time : string
-        date "+YYYY-MM-DD"
+    s2_date : datetime, unit=days
+        date the acquisition
     s2_orbit : string
         relative orbit "RXXX"
     s2_tile : string
@@ -375,8 +382,8 @@ def meta_s2string(s2_str):
     --------
     >>> from s2d2.handler.sentinel2 import get_s2_image_locations, meta_s2string
     >>> s2_str = 'S2A_MSIL1C_20200923T163311_N0209_R140_T15MXV_20200923T200821.SAFE'
-    >>> s2_time, s2_orbit, s2_tile = meta_s2string(s2_str)
-    >>> s2_time
+    >>> s2_date, s2_orbit, s2_tile = meta_s2string(s2_str)
+    >>> s2_date.strftime("+%Y-%m-%d")
     '+2020-09-23'
     >>> s2_orbit
     'R140'
@@ -385,22 +392,62 @@ def meta_s2string(s2_str):
     """
     assert isinstance(s2_str, str), ("please provide a string")
 
-    if s2_str[0:2]=='S2': # some have info about orbit and sensor
-        s2_split = s2_str.split('_')
-        s2_time = s2_split[2][0:8]
-        s2_orbit = s2_split[4]
-        s2_tile = s2_split[5]
-    elif s2_str[0:1]=='T': # others have no info about orbit, sensor, etc.
-        s2_split = s2_str.split('_')
-        s2_time = s2_split[1][0:8]
-        s2_tile = s2_split[0]
+    s2_extension = os.path.splitext(s2_str)[-1]
+    if s2_extension == '.SAFE':
+        s2_date, s2_orbit, s2_tile = meta_s2_safe_string(s2_str)
+    elif s2_extension in ('.jp2', '.tif'):
+        s2_date, s2_tile = meta_s2_band_string(s2_str)
         s2_orbit = None
     else:
         assert True, "please provide a Sentinel-2 file string"
-    # convert to +YYYY-MM-DD string
-    # then it can be in the meta-data of following products
-    s2_time = '+' + s2_time[0:4] + '-' + s2_time[4:6] + '-' + s2_time[6:8]
-    return s2_time, s2_orbit, s2_tile
+    return s2_date, s2_orbit, s2_tile
+
+def meta_s2_band_string(s2_str):
+    """ the filename of the Sentinel-2 imagery has info about its date and tile
+
+    Parameters
+    ----------
+    s2_str : string
+        filename of the L1C data
+
+    Returns
+    -------
+    s2_date : datetime, unit=days
+        date the acquisition
+    s2_tile : string
+        tile code "TXXXXX"
+    """
+    s2_split = s2_str.split('_')
+    s2_date = datetime(int(s2_split[1][0:4]),
+                       int(s2_split[1][4:6]),
+                       int(s2_split[1][6:8]))
+    s2_tile = s2_split[0]
+    return s2_date, s2_tile
+
+def meta_s2_safe_string(s2_str):
+    """ the .SAFE file has info about orbit and sensor
+
+    Parameters
+    ----------
+    s2_str : string
+        filename of the L1C data
+
+    Returns
+    -------
+    s2_date : datetime, unit=days
+        date the acquisition
+    s2_orbit : string
+        relative orbit "RXXX"
+    s2_tile : string
+        tile code "TXXXXX"
+    """
+    s2_split = s2_str.split('_')
+    s2_date = datetime(int(s2_split[2][0:4]),
+                       int(s2_split[2][4:6]),
+                       int(s2_split[2][6:8]))
+    s2_orbit = s2_split[4]
+    s2_tile = s2_split[5]
+    return s2_date, s2_orbit, s2_tile
 
 def get_s2_folders(im_path):
     assert os.path.isdir(im_path), 'please specify a folder'

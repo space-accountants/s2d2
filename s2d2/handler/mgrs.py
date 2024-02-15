@@ -53,9 +53,9 @@ def _kml_to_gdf(tile_path):
     return gdf_out
 
 def _get_mgrs_abc():
-    mgrsABC = [chr(i) for i in list(range(65,73)) +
-               list(range(74,79)) + list(range(80,91))]
-    return mgrsABC
+    mgrs_abc = [chr(i) for i in list(range(65,73)) +
+                list(range(74,79)) + list(range(80,91))]
+    return mgrs_abc
 
 def _mgrs_to_search_geometry(tile_code):
     """
@@ -86,15 +86,15 @@ def _mgrs_to_search_geometry(tile_code):
         geom = MultiPolygon(polygons=[geom, extra])
     return geom
 
-def get_mgrs_tile(ϕ,λ):
+def get_mgrs_tile(lat,lon):
     """ return a military grid reference system zone designation string.
     This zoning is used in the tiling of Sentinel-2.
 
     Parameters
     ----------
-    ϕ : float, unit=degrees, range=-90...+90
+    lat : float, unit=degrees, range=-90...+90
         latitude
-    λ : float, unit=degrees
+    lon : float, unit=degrees
         longitude
 
     Returns
@@ -116,43 +116,42 @@ def get_mgrs_tile(ϕ,λ):
     """
 
     # numbering goes with the alphabet, excluding "O" and "I"
-    mgrsABC = _get_mgrs_abc()
+    mgrs_abc = _get_mgrs_abc()
     tile_size = 100. # [km]
     tile_size *= 1E3
 
-    utm_zone = get_utm_zone(ϕ, λ)
+    utm_zone = get_utm_zone(lat, lon)
     utm_no = int(utm_zone[:-1])
 
     # transform to UTM coordinates
     proj = osr.SpatialReference()
-    NH = True if ϕ>0 else False
-    proj.SetUTM(utm_no, NH)
-    falseEasting = proj.GetProjParm( osr.SRS_PP_FALSE_EASTING)
+    proj.SetUTM(utm_no, lat>0)
+    false_easting = proj.GetProjParm( osr.SRS_PP_FALSE_EASTING)
 
-    xyz = np.squeeze(ll2map(np.array([[ϕ,λ]]), proj))
+    xyz = np.squeeze(ll2map(np.array([[lat,lon]]), proj))
 
-    # λ letter
-    shift_letter = np.floor( np.divide(xyz[0] - falseEasting,
+    # lon letter
+    shift_letter = np.floor( np.divide(xyz[0] - false_easting,
                                        tile_size)).astype(int)
     center_letter = int(np.mod(utm_no - 1, 3) * 8) + 4
-    λ_letter = mgrsABC[center_letter + shift_letter]
+    lon_letter = mgrs_abc[center_letter + shift_letter]
 
-    # ϕ letter
+    # lat letter
     tile_shift = np.fix(xyz[1])
-    ϕ_num = np.mod(tile_shift, 20)
+    lat_num = np.mod(tile_shift, 20)
     if np.mod(utm_no,2)==0: # even get an additional five letter shift
         if np.all((xyz[1] < 0, np.abs(tile_shift) > 5)):
-            ϕ_num -= 4 # counts up to "R"
+            lat_num -= 4 # counts up to "R"
         else:
-            ϕ_num += 5
+            lat_num += 5
     else:
         if xyz[1] < 0: # a leap hole is present in the southern hemisphere
-            ϕ_num -= 4 # counts up to "R"
-    ϕ_idx = np.mod(ϕ_num, 20)
-    ϕ_idx -= 1
-    ϕ_letter = mgrsABC[ϕ_idx]
+            lat_num -= 4 # counts up to "R"
+    lat_idx = np.mod(lat_num, 20)
+    lat_idx -= 1
+    lat_letter = mgrs_abc[lat_idx]
 
-    mgrs_code = utm_zone + λ_letter + ϕ_letter
+    mgrs_code = utm_zone + lon_letter + lat_letter
     return mgrs_code
 
 def get_geom_from_tile_code(tile_code, tile_path=None):
@@ -224,7 +223,7 @@ def get_tile_codes_from_geom(geom, tile_path=None):
         geom = wkt.loads(geom)
 
     # Uniform CRS
-    if isinstance(geom, gpd.GeoSeries) or isinstance(geom, gpd.GeoDataFrame):
+    if isinstance(geom, (gpd.GeoSeries, gpd.GeoDataFrame)):
         example = gpd.read_file(tile_path, rows=1)
         geom = geom.set_crs(example.crs)
 
@@ -258,4 +257,3 @@ def get_bbox_from_tile_code(tile_code, tile_path=None):
     toi = geom.bounds
     bbox = np.array([toi[0], toi[2], toi[1], toi[3]])
     return bbox
-
