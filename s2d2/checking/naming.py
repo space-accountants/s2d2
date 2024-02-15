@@ -50,6 +50,3 @@ def check_sen2_safe_code(code_str):
     if not bool(re.match(pattern, code_str)):
         raise ValueError("please provide a correct Sentinel-2 tile code")
     return code_str
-
-#todo: def check_sen2_granule_code(code_str):
-#todo: def check_sen2_datastrip_code
