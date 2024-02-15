@@ -3,54 +3,47 @@
 
 import numpy as np
 
-from s2d2.checking.mapping import correct_geoTransform
+from s2d2.checking.mapping import correct_geotransform
 
-def are_two_arrays_equal(A, B):
+def are_two_arrays_equal(a, b):
     """ check if two arrays have the same dimensions
 
     Parameters
     ----------
-    A, B : {np.ma.array, np.ndarray}
+    a, b : {np.ma.array, np.ndarray}
         arrays of interest
 
     Returns
     -------
     bool, provides True if all sizes are equal
     """
-    assert type(A) in (np.ma.core.MaskedArray, np.ndarray), \
-        ('please provide an array')
-    assert type(B) in (np.ma.core.MaskedArray, np.ndarray), \
-        ('please provide an array')
-    assert A.ndim==B.ndim, ('please provide arrays of same dimension')
-    assert A.shape==B.shape, ('please provide arrays of equal shape')
-    return
+    no_arr_str = 'please provide an array'
+    assert type(a) in (np.ma.core.MaskedArray, np.ndarray), no_arr_str
+    assert type(b) in (np.ma.core.MaskedArray, np.ndarray), no_arr_str
+    assert (a.ndim == b.ndim), ('please provide arrays of same dimension')
+    assert (a.shape == b.shape), ('please provide arrays of equal shape')
 
-def are_three_arrays_equal(A, B, C):
+def are_three_arrays_equal(a, b, c):
     """ check if three arrays have the same dimensions
 
     Parameters
     ----------
-    A, B, C : {np.ma.array, np.ndarray}
+    a, b, c : {np.ma.array, np.ndarray}
         arrays of interest
 
     Returns
     -------
     bool, provides True if all sizes are equal
     """
-    assert type(A) in (np.ma.core.MaskedArray, np.ndarray), \
-        ('please provide an array')
-    assert type(B) in (np.ma.core.MaskedArray, np.ndarray), \
-        ('please provide an array')
-    assert type(C) in (np.ma.core.MaskedArray, np.ndarray), \
-        ('please provide an array')
-    assert len(set({A.shape[0], B.shape[0], C.shape[0]})) == 1, \
-         ('please provide arrays of the same size')
-    if np.logical_and.reduce((A.ndim>1, B.ndim>1, C.ndim>1)):
-        assert len(set({A.shape[1], B.shape[1], C.shape[1]})) == 1, \
-             ('please provide arrays of the same size')
-    assert len(set({A.ndim, B.ndim, C.ndim})) == 1, \
-         ('please provide arrays of the same dimension')
-    return
+    no_arr_str = 'please provide an array'
+    no_size_str = 'please provide arrays of the same size'
+    assert type(a) in (np.ma.core.MaskedArray, np.ndarray), no_arr_str
+    assert type(b) in (np.ma.core.MaskedArray, np.ndarray), no_arr_str
+    assert type(c) in (np.ma.core.MaskedArray, np.ndarray), no_arr_str
+    assert len(set({a.shape[0], b.shape[0], c.shape[0]})) == 1, no_size_str
+    if np.logical_and.reduce((a.ndim>1, b.ndim>1, c.ndim>1)):
+        assert len(set({a.shape[1], b.shape[1], c.shape[1]})) == 1, no_size_str
+    assert len(set({a.ndim, b.ndim, c.ndim})) == 1, no_size_str
 
 def correct_floating_parameter(a):
     """ sometimes a float is asked for, but this is given in a list, array or
@@ -74,23 +67,22 @@ def correct_floating_parameter(a):
 
     assert isinstance(a, (int, float)), 'please provide an integer'
     if isinstance(a, int):
-        a = float(a)
-    return a
+        return float(a)
 
-def make_same_size(Old,
-                   geoTransform_old,
-                   geoTransform_new,
+def make_same_size(old,
+                   geotransform_old,
+                   geotransform_new,
                    rows_new=None,
                    cols_new=None):
     """ clip array to the same size as another array
 
     Parameters
     ----------
-    Old : np.array, size=(m,n), dtype={float, complex}
+    old : np.array, size=(m,n), dtype={float, complex}
         data array to be clipped.
-    geoTransform_old : tuple, size={(6,), (8,)}
+    geotransform_old : tuple, size={(6,), (8,)}
         georeference transform of the old image.
-    geoTransform_new : tuple, size={(6,), (8,)}
+    geotransform_new : tuple, size={(6,), (8,)}
         georeference transform of the new image.
     rows_new : integer, {x ∈ ℕ | x ≥ 0}
         amount of rows of the new image.
@@ -102,48 +94,48 @@ def make_same_size(Old,
     New : np.array, size=(k,l), dtype={float,complex}
         clipped data array.
     """
-    geoTransform_old = correct_geoTransform(geoTransform_old)
-    geoTransform_new = correct_geoTransform(geoTransform_new)
+    geotransform_old = correct_geotransform(geotransform_old)
+    geotransform_new = correct_geotransform(geotransform_new)
 
-    if len(geoTransform_new) == 8:
-        rows_new, cols_new = geoTransform_new[-2], geoTransform_new[-1]
+    if len(geotransform_new) == 8:
+        rows_new, cols_new = geotransform_new[-2], geotransform_new[-1]
 
     # look at upper left coordinate
     dj = np.round(
-        (geoTransform_new[0] - geoTransform_old[0]) / geoTransform_new[1])
+        (geotransform_new[0] - geotransform_old[0]) / geotransform_new[1])
     di = np.round(
-        (geoTransform_new[3] - geoTransform_old[3]) / geoTransform_new[1])
+        (geotransform_new[3] - geotransform_old[3]) / geotransform_new[1])
 
     if np.sign(dj) == -1:  # extend array by simple copy of border values
-        Old = np.concatenate((np.repeat(
-            np.expand_dims(Old[:, 0], axis=1), abs(dj), axis=1), Old),
+        old = np.concatenate((np.repeat(
+            np.expand_dims(old[:, 0], axis=1), abs(dj), axis=1), old),
                              axis=1)
     elif np.sign(dj) == 1:  # reduce array
-        Old = Old[:, abs(dj).astype(int):]
+        old = old[:, abs(dj).astype(int):]
 
     if np.sign(di) == -1:  # reduce array
-        Old = Old[abs(di).astype(int):, :]
+        old = old[abs(di).astype(int):, :]
     elif np.sign(di) == 1:  # extend array by simple copy of border values
-        Old = np.concatenate((np.repeat(
-            np.expand_dims(Old[0, :], axis=1).T, abs(di), axis=0), Old),
+        old = np.concatenate((np.repeat(
+            np.expand_dims(old[0, :], axis=1).T, abs(di), axis=0), old),
                              axis=0)
 
     # as they are now alligned, look at the lower right corner
-    di, dj = rows_new - Old.shape[0], cols_new - Old.shape[1]
+    di, dj = rows_new - old.shape[0], cols_new - old.shape[1]
 
     if np.sign(dj) == -1:  # reduce array
-        Old = Old[:, :dj]
+        old = old[:, :dj]
     elif np.sign(dj) == 1:  # extend array by simple copy of border values
-        Old = np.concatenate((np.repeat(
-            Old, np.expand_dims(Old[:, -1], axis=1), abs(dj), axis=1)),
+        old = np.concatenate((np.repeat(
+            old, np.expand_dims(old[:, -1], axis=1), abs(dj), axis=1)),
                              axis=1)
 
     if np.sign(di) == -1:  # reduce array
-        Old = Old[:di, :]
+        old = old[:di, :]
     elif np.sign(di) == 1:  # extend array by simple copy of border values
-        Old = np.concatenate((np.repeat(
-            Old, np.expand_dims(Old[-1, :], axis=1).T, abs(di), axis=0)),
+        old = np.concatenate((np.repeat(
+            old, np.expand_dims(old[-1, :], axis=1).T, abs(di), axis=0)),
                              axis=0)
 
-    New = Old
-    return New
+    new = old
+    return new

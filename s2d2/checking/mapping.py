@@ -5,12 +5,12 @@ import numpy as np
 
 from s2d2.unit_conversion import deg2arg
 
-def zenit_angle_check(θ):
+def zenit_angle_check(theta):
     """ check if the solar zenit angle is within range
 
     Parameters
     ----------
-    θ : np.ndarray, dtype=float, unit=degrees, range=-90...+90
+    theta : np.ndarray, dtype=float, unit=degrees, range=-90...+90
         solar zenith angle
 
     Notes
@@ -28,34 +28,34 @@ def zenit_angle_check(θ):
           └----- surface        └------
 
     """
-    θ = np.maximum(θ, 0.)
-    θ = np.minimum(θ, 90.)
-    return θ
+    theta = np.maximum(theta, 0.)
+    theta = np.minimum(theta, 90.)
+    return theta
 
-def lat_lon_angle_check(ϕ,λ):
+def lat_lon_angle_check(lat,lon):
     """
 
     Parameters
     ----------
-    ϕ : np.ndarray, dtype=float, unit=degrees, range=-90...+90
+    lat : np.ndarray, dtype=float, unit=degrees, range=-90...+90
         latitude
-    λ : float, unit=degrees, unit=degrees, range=-180...+180
+    lon : float, unit=degrees, unit=degrees, range=-180...+180
         longitude
 
     Returns
     -------
-    ϕ,λ : float
+    lat,lon : float
         latitude and longitude
 
     See Also
     --------
     .deg2arg : transform angle to range of -180...+180
     """
-    ϕ = np.maximum(ϕ, -90.)
-    ϕ = np.minimum(ϕ, +90.)
+    lat = np.maximum(lat, -90.)
+    lat = np.minimum(lat, +90.)
 
-    λ = deg2arg(λ)
-    return ϕ, λ
+    lon = deg2arg(lon)
+    return lat, lon
 
 def is_crs_an_srs(crs):
     """ is the coordinate reference system given in degrees, or a spatial
@@ -78,7 +78,7 @@ def is_crs_an_srs(crs):
     if not isinstance(crs, str): crs = crs.ExportToWkt()
     return crs.find('"metre"')!=-1
 
-def correct_geoTransform(geoTransform):
+def correct_geotransform(geoTransform):
     """ check if image information in the form of its size is also provided
 
     Parameters

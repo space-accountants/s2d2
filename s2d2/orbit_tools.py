@@ -9,7 +9,7 @@ import pandas as pd
 from .image_coordinate_tools import pix_centers
 from .mapping_tools import map2ll, ecef2llh
 from s2d2.checking.mapping import \
-    correct_geoTransform, lat_lon_angle_check, is_crs_an_srs
+    correct_geotransform, lat_lon_angle_check, is_crs_an_srs
 
 from s2d2.checking.array import are_two_arrays_equal, are_three_arrays_equal
 
@@ -123,7 +123,7 @@ def calculate_correct_mapping(Zn_grd, Az_grd, bnd, det, grdTransform, crs,
     """
     are_two_arrays_equal(Zn_grd,Az_grd)
     are_two_arrays_equal(bnd, det)
-    grdTransform = correct_geoTransform(grdTransform)
+    grdTransform = correct_geotransform(grdTransform)
     if not isinstance(crs, str):
         crs = crs.ExportToWkt()
     depth = 1 if Az_grd.ndim<3 else Az_grd.shape[2]
@@ -167,7 +167,7 @@ def remap_observation_angles(Ltime, lat, lon, radius, inclination, period,
         bnd_list -= 1 # numbering of python starts at 0
     lat,lon = lat_lon_angle_check(lat,lon)
     are_two_arrays_equal(X_grd,Y_grd)
-    geoTransform = correct_geoTransform(geoTransform)
+    geoTransform = correct_geotransform(geoTransform)
 
     m,n = X_grd.shape
     #bnd_list = np.asarray(sat_df['bandid'])
@@ -396,7 +396,7 @@ def time_fitting(Ltime, Az, Zn, bnd, det, X, Y, geoTransform):
     are_two_arrays_equal(Zn,Az)
     are_two_arrays_equal(bnd, det)
     are_two_arrays_equal(X,Y)
-    geoTransform = correct_geoTransform(geoTransform)
+    geoTransform = correct_geotransform(geoTransform)
 
     dX, dY = X - geoTransform[0], geoTransform[3] - Y
 

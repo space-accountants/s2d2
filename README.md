@@ -10,8 +10,6 @@
 
 ## How to use s2d2
 
-sentinel-2 data deepening
-
 
 ## Installation
 

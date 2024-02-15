@@ -2,7 +2,7 @@ import numpy as np
 
 from osgeo import osr
 
-from .checking.mapping import correct_geoTransform
+from .checking.mapping import correct_geotransform
 from .checking.array import are_two_arrays_equal, correct_floating_parameter
 
 def pix2map(geoTransform, i, j):
@@ -45,7 +45,7 @@ def pix2map(geoTransform, i, j):
           based      v           based       |
 
     """
-    geoTransform = correct_geoTransform(geoTransform)
+    geoTransform = correct_geotransform(geoTransform)
     if type(i) in (np.ma.core.MaskedArray, np.ndarray):
         are_two_arrays_equal(i, j)
     else:  # if only a float is given
@@ -99,7 +99,7 @@ def map2pix(geoTransform, x, y):
           based      v           based       |
 
     """
-    geoTransform = correct_geoTransform(geoTransform)
+    geoTransform = correct_geotransform(geoTransform)
     if type(x) in (np.ma.core.MaskedArray, np.ndarray):
         are_two_arrays_equal(x, y)
     else:  # if only a float is given
@@ -159,7 +159,7 @@ def pix_centers(geoTransform, rows=None, cols=None, make_grid=True):
           based      v           based       |
 
     """
-    geoTransform = correct_geoTransform(geoTransform)
+    geoTransform = correct_geotransform(geoTransform)
     if rows is None:
         assert len(geoTransform) == 8, (
             'please provide the dimensions of the ' +
@@ -214,7 +214,7 @@ def get_bbox(geoTransform, rows=None, cols=None):
           based      v           based       |
 
     """
-    geoTransform = correct_geoTransform(geoTransform)
+    geoTransform = correct_geotransform(geoTransform)
     if rows is None:
         assert len(geoTransform) >= 8, ('please provide raster information')
         rows, cols = geoTransform[6], geoTransform[7]
