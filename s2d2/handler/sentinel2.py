@@ -399,7 +399,7 @@ def meta_s2string(s2_str):
         s2_date, s2_tile = meta_s2_band_string(s2_str)
         s2_orbit = None
     else:
-        assert True, "please provide a Sentinel-2 file string"
+        raise AssertionError("please provide a Sentinel-2 file string")
     return s2_date, s2_orbit, s2_tile
 
 def meta_s2_band_string(s2_str):
