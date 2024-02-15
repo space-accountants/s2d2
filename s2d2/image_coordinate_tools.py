@@ -5,12 +5,12 @@ from osgeo import osr
 from .checking.mapping import correct_geotransform
 from .checking.array import are_two_arrays_equal, correct_floating_parameter
 
-def pix2map(geoTransform, i, j):
+def pix2map(geotransform, i, j):
     """ transform local image coordinates to map coordinates
 
     Parameters
     ----------
-    geoTransform : tuple, size={(6,1), (8,1)}
+    geotransform : tuple, size={(6,1), (8,1)}
         georeference transform of an image.
     i : np.array, ndim={1,2,3}, dtype=float
         row coordinate(s) in local image space
@@ -45,26 +45,26 @@ def pix2map(geoTransform, i, j):
           based      v           based       |
 
     """
-    geoTransform = correct_geotransform(geoTransform)
+    geotransform = correct_geotransform(geotransform)
     if type(i) in (np.ma.core.MaskedArray, np.ndarray):
         are_two_arrays_equal(i, j)
     else:  # if only a float is given
         i, j = correct_floating_parameter(i), correct_floating_parameter(j)
 
-    x = geoTransform[0] + \
-        np.multiply(geoTransform[1], j) + np.multiply(geoTransform[2], i)
+    x = geotransform[0] + \
+        np.multiply(geotransform[1], j) + np.multiply(geotransform[2], i)
 
-    y = geoTransform[3] + \
-        np.multiply(geoTransform[4], j) + np.multiply(geoTransform[5], i)
+    y = geotransform[3] + \
+        np.multiply(geotransform[4], j) + np.multiply(geotransform[5], i)
     return x, y
 
 
-def map2pix(geoTransform, x, y):
+def map2pix(geotransform, x, y):
     """ transform map coordinates to local image coordinates
 
     Parameters
     ----------
-    geoTransform : tuple, size={(6,1), (8,1)}
+    geotransform : tuple, size={(6,1), (8,1)}
         georeference transform of an image.
     x : np.array, size=(m), ndim={1,2,3}, dtype=float
         horizontal map coordinate.
@@ -99,28 +99,28 @@ def map2pix(geoTransform, x, y):
           based      v           based       |
 
     """
-    geoTransform = correct_geotransform(geoTransform)
+    geotransform = correct_geotransform(geotransform)
     if type(x) in (np.ma.core.MaskedArray, np.ndarray):
         are_two_arrays_equal(x, y)
     else:  # if only a float is given
         x, y = correct_floating_parameter(x), correct_floating_parameter(y)
 
-    A = np.array(geoTransform[:-2]).reshape(2, 3)[:, 1:]
-    A_inv = np.linalg.inv(A)
+    A = np.array(geotransform[:-2]).reshape(2, 3)[:, 1:]
+    P = np.linalg.inv(A)
 
-    x_loc = x - geoTransform[0]
-    y_loc = y - geoTransform[3]
+    x_loc = x - geotransform[0]
+    y_loc = y - geotransform[3]
 
-    j = np.multiply(x_loc, A_inv[0, 0]) + np.multiply(y_loc, A_inv[0, 1])
-    i = np.multiply(x_loc, A_inv[1, 0]) + np.multiply(y_loc, A_inv[1, 1])
+    j = np.multiply(x_loc, P[0, 0]) + np.multiply(y_loc, P[0, 1])
+    i = np.multiply(x_loc, P[1, 0]) + np.multiply(y_loc, P[1, 1])
     return i, j
 
-def pix_centers(geoTransform, rows=None, cols=None, make_grid=True):
+def pix_centers(geotransform, rows=None, cols=None, make_grid=True):
     """ provide the pixel coordinate from the axis, or the whole grid
 
     Parameters
     ----------
-    geoTransform : tuple, size={(6,), (8,)}
+    geotransform : tuple, size={(6,), (8,)}
         georeference transform of an image.
     rows : integer, {x ∈ ℕ | x ≥ 0}, default=None
         amount of rows in an image.
@@ -159,29 +159,28 @@ def pix_centers(geoTransform, rows=None, cols=None, make_grid=True):
           based      v           based       |
 
     """
-    geoTransform = correct_geotransform(geoTransform)
+    geotransform = correct_geotransform(geotransform)
     if rows is None:
-        assert len(geoTransform) == 8, (
+        assert len(geotransform) == 8, (
             'please provide the dimensions of the ' +
-            'imagery, or have this included in the ' + 'geoTransform.')
-        rows, cols = int(geoTransform[-2]), int(geoTransform[-1])
+            'imagery, or have this included in the ' + 'geotransform.')
+        rows, cols = int(geotransform[-2]), int(geotransform[-1])
     i, j = np.linspace(0, rows - 1, rows), np.linspace(0, cols - 1, cols)
 
     if make_grid:
         jj, ii = np.meshgrid(j, i)
-        X, Y = pix2map(geoTransform, ii, jj)
+        X, Y = pix2map(geotransform, ii, jj)
         return X, Y
-    else:
-        x, y_dummy = pix2map(geoTransform, np.repeat(i[0], len(j)), j)
-        x_dummy, y = pix2map(geoTransform, i, np.repeat(j[0], len(i)))
-        return x, y
+    x, _ = pix2map(geotransform, np.repeat(i[0], len(j)), j)
+    _, y = pix2map(geotransform, i, np.repeat(j[0], len(i)))
+    return x, y
 
-def get_bbox(geoTransform, rows=None, cols=None):
+def get_bbox(geotransform, rows=None, cols=None):
     """ given array meta data, calculate the bounding box
 
     Parameters
     ----------
-    geoTransform : tuple, size=(6,)
+    geotransform : tuple, size=(6,)
         georeference transform of an image.
     rows : integer, {x ∈ ℕ | x ≥ 0}
         amount of rows in an image.
@@ -214,18 +213,18 @@ def get_bbox(geoTransform, rows=None, cols=None):
           based      v           based       |
 
     """
-    geoTransform = correct_geotransform(geoTransform)
+    geotransform = correct_geotransform(geotransform)
     if rows is None:
-        assert len(geoTransform) >= 8, ('please provide raster information')
-        rows, cols = geoTransform[6], geoTransform[7]
+        assert len(geotransform) >= 8, ('please provide raster information')
+        rows, cols = geotransform[6], geotransform[7]
 
-    X = geoTransform[0] + \
-        np.array([0, cols]) * geoTransform[1] + np.array([0, rows]) * \
-        geoTransform[2]
+    X = geotransform[0] + \
+        np.array([0, cols]) * geotransform[1] + np.array([0, rows]) * \
+        geotransform[2]
 
-    Y = geoTransform[3] + \
-        np.array([0, cols]) * geoTransform[4] + np.array([0, rows]) * \
-        geoTransform[5]
+    Y = geotransform[3] + \
+        np.array([0, cols]) * geotransform[4] + np.array([0, rows]) * \
+        geotransform[5]
 
     bbox = np.hstack((np.sort(X), np.sort(Y)))
     return bbox
