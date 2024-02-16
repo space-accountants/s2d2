@@ -501,19 +501,19 @@ def orbital_fitting(sat, g_x, lat=None, lon=None, radius=None, inclination=None,
                                      period, omega_0, lon_0)
 
         # Calculate the partial derivatives w.r.t. the orbit parameters
-        P_0 = partial_obs(l_time, sat, g_x, lat_bar, lon_bar, radius,
+        p_0 = partial_obs(l_time, sat, g_x, lat_bar, lon_bar, radius,
                           inclination, period)
-        A_0 += np.einsum('ij...,ik...->jk...', P_0, P_0)
-        L_0 += np.einsum('...i,ij...->j...', v_x, P_0)
+        A_0 += np.einsum('ij...,ik...->jk...', p_0, p_0)
+        L_0 += np.einsum('...i,ij...->j...', v_x, p_0)
 
-        P_1 = partial_tim(l_time, sat, g_x,
+        p_1 = partial_tim(l_time, sat, g_x,
                           lat_bar, lon_bar, radius,
                           inclination, period)
-        P_1 = np.squeeze(P_1)
-        M_1 = np.einsum('ij...,i...->j...', P_0, P_1)
-        A_1 = np.reciprocal(np.einsum('i...,i...->...', P_1, P_1))
-        L_1 = np.multiply(np.einsum('i...,...i->...',P_1, v_x), A_1)
-        del P_0, P_1, v_x
+        p_1 = np.squeeze(p_1)
+        M_1 = np.einsum('ij...,i...->j...', p_0, p_1)
+        A_1 = np.reciprocal(np.einsum('i...,i...->...', p_1, p_1))
+        L_1 = np.multiply(np.einsum('i...,...i->...',p_1, v_x), A_1)
+        del p_0, p_1, v_x
 
         A_0 += np.einsum('i...,j...->ij...', A_1*M_1, M_1)
         L_0 += np.multiply(M_1,L_1)
@@ -653,41 +653,41 @@ def partial_obs(ltime, sat, g_x, lat, lon, radius, inclination, period):
     """ numerical differentiation, via pertubation of the observation vector
     """
     are_two_arrays_equal(sat, g_x)
-    P_0 = np.zeros((3, 4, ltime.size))
+    p_0 = np.zeros((3, 4, ltime.size))
     omega_0, lon_0 = _omega_lon_calculation(lat, lon, inclination)
-    Dx = observation_calculation(ltime, sat, g_x, radius, inclination,
+    dx = observation_calculation(ltime, sat, g_x, radius, inclination,
                                  period, omega_0, lon_0)
     pert_var = ['lat', 'lon', 'radius', 'inclination']
-    Pert = np.array([1E-5, 1E-5, 1E+1, 1E-4])
-    for idx,pert in enumerate(Pert):
+    pert = np.array([1E-5, 1E-5, 1E+1, 1E-4])
+    for idx,pert in enumerate(pert):
         (lat, lon, radius, inclination) = _pert_param(idx, +pert, lat, lon,
                                                       radius, inclination)
 
         omega_0, lon_0 = _omega_lon_calculation(lat, lon, inclination)
-        Dp = observation_calculation(ltime, sat, g_x, radius,
+        dp = observation_calculation(ltime, sat, g_x, radius,
                                      inclination, period, omega_0, lon_0)
-        P_0[0,idx,:] = np.divide(Dp[:,0] - Dx[:,0],pert)
-        P_0[1,idx,:] = np.divide(Dp[:,1] - Dx[:,1],pert)
-        P_0[2,idx,:] = np.divide(Dp[:,2] - Dx[:,2],pert)
+        p_0[0,idx,:] = np.divide(dp[:,0] - dx[:,0],pert)
+        p_0[1,idx,:] = np.divide(dp[:,1] - dx[:,1],pert)
+        p_0[2,idx,:] = np.divide(dp[:,2] - dx[:,2],pert)
         (lat, lon, radius, inclination) = _pert_param(idx, -pert, lat, lon,
                                                       radius, inclination)
-    return P_0
+    return p_0
 
 def partial_tim(ltime, sat, g_x, lat, lon, radius, inclination, period,
                 pertubation=.1):
     are_two_arrays_equal(sat, g_x)
-    P_1 = np.zeros((3, 1, ltime.size))
+    p_1 = np.zeros((3, 1, ltime.size))
     omega_0, lon_0 = _omega_lon_calculation(lat, lon, inclination)
-    Dx = observation_calculation(ltime, sat, g_x, radius, inclination,
+    dx = observation_calculation(ltime, sat, g_x, radius, inclination,
                             period, omega_0, lon_0)
 
     # pertubation in the time domain
     ltime += pertubation
-    Dp = observation_calculation(ltime, sat, g_x, radius, inclination,
+    dp = observation_calculation(ltime, sat, g_x, radius, inclination,
                             period, omega_0, lon_0)
     ltime -= pertubation
 
-    P_1[0,0,...] = np.divide(Dp[...,0] - Dx[...,0], pertubation)
-    P_1[1,0,...] = np.divide(Dp[...,1] - Dx[...,1], pertubation)
-    P_1[2,0,...] = np.divide(Dp[...,2] - Dx[...,2], pertubation)
-    return P_1
+    p_1[0,0,...] = np.divide(dp[...,0] - dx[...,0], pertubation)
+    p_1[1,0,...] = np.divide(dp[...,1] - dx[...,1], pertubation)
+    p_1[2,0,...] = np.divide(dp[...,2] - dx[...,2], pertubation)
+    return p_1
