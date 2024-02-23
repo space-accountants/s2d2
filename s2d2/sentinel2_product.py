@@ -11,6 +11,34 @@ from .typing import Path
 
 
 class Sentinel2Product:
+    """
+
+    Notes
+    -----
+    The metadata is scattered over the file structure of Sentinel-2, Level
+    1C meta data files. The folders and files are as follows:
+
+    .. code-block:: text
+
+        * S2X_MSIL1C_20XX...
+        ├ AUX_DATA
+        ├ DATASTRIP
+        │  └ DS_XXX_XXXX...
+        │     └ QI_DATA
+        │        └ MTD_DS.xml <- metadata about the data-strip
+        ├ GRANULE
+        │  └ L1C_TXXXX_XXXX...
+        │     ├ AUX_DATA
+        │     ├ IMG_DATA
+        │     ├ QI_DATA
+        │     └ MTD_TL.xml <- metadata about the tile
+        ├ HTML
+        ├ rep_info
+        ├ manifest.safe
+        ├ INSPIRE.xml
+        └ MTD_MSIL1C.xml <- metadata about the product
+    """
+
     def __init__(self, path: Optional[Path] = None) -> None:
         # add as optional paths of all files used here?
         # default calculate relative paths for datastrip and granule
@@ -22,6 +50,38 @@ class Sentinel2Product:
         self.spacecraft = None
 
     def load_metadata(self) -> None:
+        """ load meta-data from the product file (MTD_TL.xml)
+
+        Notes
+        -----
+        The metadata structure of the Sentinel2 product is as follows:
+            .. code-block:: text
+
+            * MTD_TL.xml
+            └ n1:Level-1C_Tile_ID
+               ├ n1:General_Info
+               │  ├ Product_Info
+               │  │  ├ PRODUCT_URI <- .SAFE folder name
+               │  │  ├ PROCESSING_LEVEL
+               │  │  └ PROCESSING_BASELINE
+               │  ├ SPACECRAFT_NAME
+               │  ├ SENSING_ORBIT_NUMBER
+               │  └ SENSING_ORBIT_DIRECTION
+               ├ n1:Geometric_Info
+               │  ├ Tile_Geocoding
+               │  │  ├ HORIZONTAL_CS_NAME
+               │  │  ├ HORIZONTAL_CS_CODE
+               │  │  ├ Size : resolution={"10","20","60"}
+               │  │  │  ├ NROWS
+               │  │  │  └ NCOLS
+               │  │  └ Geoposition
+               │  │     ├ ULX
+               │  │     ├ ULY
+               │  │     ├ XDIM
+               │  │     └ YDIM
+               │  └ Tile_Angles
+               └ n1:Quality_Indicators_Info
+        """
         root = get_root_of_table()
         # read_sentinel2.read_sensing_time_s2
         self.sensing_time = ...
