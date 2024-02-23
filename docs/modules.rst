@@ -1,14 +1,9 @@
 generic
 -------
 
-basic reading of Sentinel-2 data
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. automodule:: s2d2.read_sentinel2
-    :members:
-
-advanced reading of Sentinel-2 sensors
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. automodule:: s2d2.sensor_readings_sentinel2
+advanced processing of flight paths
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. automodule:: s2d2.orbit_tools
     :members:
 
 basic reading of geo-referenced imagery
@@ -34,11 +29,6 @@ metric conversions
 handling formats and specifics
 ------------------------------
 
-sentinel-2 metadata file structure
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. automodule:: s2d2.handler.sentinel2
-    :members:
-
 sentinel-2 tiling structure
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. automodule:: s2d2.handler.mgrs
@@ -51,11 +41,6 @@ sentinel-2 metadata records
 
 look at consistency
 -------------------
-
-naming
-~~~~~~
-.. automodule:: dhdt.checking.naming
-    :members:
 
 mapping
 ~~~~~~~
