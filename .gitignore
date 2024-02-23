@@ -16,6 +16,7 @@ coverage.xml
 pylint-report.txt
 
 docs/_build
+data
 
 # ide
 .idea
