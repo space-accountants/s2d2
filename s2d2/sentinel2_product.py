@@ -5,6 +5,7 @@ from typing import Optional
 from .handler.xml import get_root_of_table
 from .sentinel2_datastrip import Sentinel2Datastrip
 from .sentinel2_tile import Sentinel2Tile
+from .sentinel2_instrument import S2A_PLATFORM_SPECS, S2B_PLATFORM_SPECS
 from .typing import Path
 
 

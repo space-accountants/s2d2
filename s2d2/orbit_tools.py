@@ -81,7 +81,7 @@ def estimate_inclination_via_xyz_uvw(xyz, uvw):
     return i
 
 def calculate_correct_mapping(zn_grd, az_grd, bnd, det, grdtransform, crs,
-                              sat_dict=None):
+                              inclination, revolutions_per_day, altitude):
     """
 
     Parameters
@@ -96,12 +96,9 @@ def calculate_correct_mapping(zn_grd, az_grd, bnd, det, grdtransform, crs,
         geotransform of the grid of 'zn_grd' and 'az_grd'
     crs : osgeo.osr.SpatialReference() object
         coordinate reference system (CRS)
-    sat_dict : dictonary
-        metadata of the satellite platform, preferably having the following
-        elements:
-            * 'inclination'
-            * 'revolutions_per_day'
-            * 'altitude'
+    inclination : float, unit=degrees
+    revolutions_per_day : float
+    altitude : flaot, unit=
 
     Returns
     -------
@@ -158,9 +155,9 @@ def calculate_correct_mapping(zn_grd, az_grd, bnd, det, grdtransform, crs,
     time_para, combos = time_fitting(l_time, az_arr, zn_arr, Bnd, Det,
                                      x_arr, y_arr, grdtransform)
 
-    return l_time, lat, lon, radius, inclination, period, time_para, combos
+    return lat, lon, radius, inclination, period, time_para, combos
 
-def remap_observation_angles(l_time, lat, lon, radius, inclination, period,
+def remap_observation_angles(lat, lon, radius, inclination, period,
                              time_para, combos, x_grd, y_grd, det_stack,
                              bnd_list, geotransform, crs):
     if type(bnd_list) in (pd.core.frame.DataFrame,):
