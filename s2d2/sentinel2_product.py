@@ -1,3 +1,5 @@
+import numpy as np
+
 from typing import Optional
 
 from .handler.xml import get_root_of_table
@@ -23,6 +25,11 @@ class Sentinel2Product:
 
         self.tile.load_metadata()
         self.datastrip.load_metadata()
+
+    def get_flight_bearing_from_gnss(self) -> np.ndarray:
+        # sensor_readings_sentinel2.get_flight_bearing_from_gnss_s2
+        # is the name self-explanatory?
+        pass
 
     def calculate_correct_mapping(self):
         # orbit_tools.calculate_correct_mapping
