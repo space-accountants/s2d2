@@ -52,7 +52,7 @@ def transform_rpy_xyz2ocs(xyz, uvw, roll, pitch, yaw, xyz_time, ang_time):
             np.interp(ang_time, xyz_time, uvw[...,2])
     xyz, uvw = np.stack((x,y,z), axis=1), np.stack((u,v,w), axis=1)
 
-    m,n = xyz.shape
+    n = xyz.shape[1]
     z_ocs = np.divide(xyz, np.tile(np.linalg.norm(xyz, axis=-1), (n,1)).T)
     x_ocs = np.cross(uvw,xyz, axisa=-1, axisb=-1)
     x_ocs = np.divide(x_ocs, np.tile(np.linalg.norm(x_ocs, axis=-1), (n, 1)).T)
