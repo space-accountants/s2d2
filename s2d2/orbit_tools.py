@@ -14,6 +14,29 @@ from s2d2.checking.mapping import \
 from s2d2.checking.array import are_two_arrays_equal, are_three_arrays_equal
 
 def wgs84_param():
+    """ get paramters of the WGS84 ellipsoid
+
+    Returns
+    -------
+    major_axis : float, unit=meter
+        largest axis of the ellipsoid
+    flattening : float
+        amount of compression of the ellipsoid
+
+    See Also
+    --------
+    earth_eccentricity, earth_axes
+
+    Notes
+    -----
+    The flattening (f) stem from the major- (a) en minor-axis (b) via:
+
+    .. math:: f = (a - b)/a
+
+    or via the eccentricity (e):
+
+    .. math:: f = 1 - \sqrt{ 1 - e^2}
+    """
     wgs84 = osr.SpatialReference()
     wgs84.ImportFromEPSG(4326)
     major_axis = wgs84.GetSemiMajor()
@@ -21,11 +44,35 @@ def wgs84_param():
     return major_axis, flattening
 
 def earth_eccentricity():
+    """ get the eccentricity of the WGS84 ellipsoid
+
+    Returns
+    -------
+    eccentricity : float
+        amount of deviation from circularity
+
+    See Also
+    --------
+    wgs84_param, earth_axes
+    """
     major_axis, flattening = wgs84_param()
     eccentricity = (2 * flattening) - (flattening**2)
     return eccentricity
 
 def earth_axes():
+    """ get axis length of the WGS84 ellipsoid
+
+    Returns
+    -------
+    major_axis : float, unit=meter
+        largest axis of the ellipsoid
+    minor_axis : float, unit=meter
+        shortest axis of the ellipsoid
+
+    See Also
+    --------
+    earth_eccentricity, wgs84_param
+    """
     major_axis, flattening = wgs84_param()
     eccentricity = earth_eccentricity()
     minor_axis = major_axis * np.sqrt(1 - eccentricity)
@@ -37,7 +84,7 @@ def standard_gravity():
 
     Returns
     -------
-    mu : float, unit: m**3 * s**-2
+    mu : float, unit= m**3 * s**-2
         standard gravity
     """
     mu = 3.986004418E14
@@ -81,7 +128,8 @@ def estimate_inclination_via_xyz_uvw(xyz, uvw):
     return i
 
 def calculate_correct_mapping(zn_grd, az_grd, bnd, det, grdtransform, crs,
-                              inclination, revolutions_per_day, altitude):
+                              inclination, revolutions_per_day,
+                              mean_altitude=None):
     """
 
     Parameters
@@ -97,8 +145,11 @@ def calculate_correct_mapping(zn_grd, az_grd, bnd, det, grdtransform, crs,
     crs : osgeo.osr.SpatialReference() object
         coordinate reference system (CRS)
     inclination : float, unit=degrees
+        angle of the orbital plane in relation to the equatorial plane
     revolutions_per_day : float
-    altitude : flaot, unit=
+        amount of revolutions a satellite platform performs around the Earth
+    mean_altitude : float, unit=meter
+        estimate of mean satellite altitude above the Earth surface
 
     Returns
     -------
@@ -146,7 +197,7 @@ def calculate_correct_mapping(zn_grd, az_grd, bnd, det, grdtransform, crs,
     del lat_arr, lon_arr, lat_arr_grd, lon_arr_grd, zn_grd, az_grd
 
     l_time, lat, lon, radius, inclination, period = orbital_fitting(sat, g_x,
-                                                           sat_dict=sat_dict)
+        inclination, revolutions_per_day, mean_altitude)
 
     # vectorize band and detector indicators
     Bnd, Det = np.tile(bnd,(m,n,1))[ok], np.tile(det,(m,n,1))[ok]
@@ -424,9 +475,10 @@ def time_fitting(l_time, az_arr, zn_arr, bnd, det, x, y, geotransform):
             del a_bnd,l_bnd
     return x_hat, combos
 
-def orbital_fitting(sat, g_x, lat=None, lon=None, radius=None, inclination=None,
-                    period=None, sat_dict=None,
-                    convtol = 0.001, orbtol=1.0, maxiter=20, printing=False):
+def orbital_fitting(sat, g_x, inclination, lat=None, lon=None, radius=None,
+                    period=None, revolutions_per_day=None, mean_altitude=None,
+                    gps=None, convtol = 0.001, orbtol=1.0, maxiter=20,
+                    printing=False):
     """
 
     Parameters
@@ -442,7 +494,7 @@ def orbital_fitting(sat, g_x, lat=None, lon=None, radius=None, inclination=None,
     radius : float, unit=meter
         radius towards the orbiting satellite
     inclination : float, unit=degrees, range=-180...+180
-        inclination of the orbital plane with the equator
+        inclination of the orbital plane with the equatorial plane
     period : float, unit=seconds
         time it takes to revolve one time around the Earth
     sat_dict : dictonary
@@ -452,15 +504,13 @@ def orbital_fitting(sat, g_x, lat=None, lon=None, radius=None, inclination=None,
 
     """
     are_two_arrays_equal(sat, g_x)
-    if (inclination is None) and (sat_dict is not None):
-        inclination = np.deg2rad(sat_dict['inclination'])
-    if (period is None) and (sat_dict is not None):
-        period = (24*60*60) / sat_dict['revolutions_per_day']
+    inclination = np.deg2rad(inclination)
+    if (period is None) and (revolutions_per_day is not None):
+        period = (24*60*60) / revolutions_per_day
     if radius is None:
-        wgs84 = osr.SpatialReference()
-        major_axis = wgs84.GetSemiMajor()
-        if 'altitude' in sat_dict:
-            radius = major_axis + np.mean(sat_dict['altitude'])
+        major_axis = wgs84_param()[0]
+        if mean_altitude is not None:
+            radius = major_axis + mean_altitude
         else:
             radius = np.cbrt(np.divide(period, 2*np.pi)**2 * \
                              standard_gravity())
@@ -470,10 +520,10 @@ def orbital_fitting(sat, g_x, lat=None, lon=None, radius=None, inclination=None,
                           np.einsum('...i,...i', sat, g_x)**2 -
                           np.linalg.norm(g_x, axis=1)**2 )
         p_x = g_x + np.einsum('i,ij->ij', v_dist, sat)
-        if 'gps_xyz' in sat_dict: # use GPS trajectory
-            poi = np.argmin(np.linalg.norm(sat_dict['gps_xyz'] -
+        if gps is not None: # use GPS trajectory
+            poi = np.argmin(np.linalg.norm(gps -
                                            np.mean(p_x, axis=0), axis=1))
-            s_x = sat_dict['gps_xyz'][poi,:]
+            s_x = gps[poi,:]
             lat_bar = np.arctan2( s_x[2], np.linalg.norm(s_x[0:2]))
             lon_bar = np.arctan2( s_x[1], s_x[0] )
             del poi, s_x
