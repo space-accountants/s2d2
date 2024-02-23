@@ -55,7 +55,8 @@ class Sentinel2Product:
         Notes
         -----
         The metadata structure of the Sentinel2 product is as follows:
-            .. code-block:: text
+
+        .. code-block:: text
 
             * MTD_TL.xml
             └ n1:Level-1C_Tile_ID
