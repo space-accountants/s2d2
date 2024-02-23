@@ -42,7 +42,7 @@ class Sentinel2Tile:
         # if "bands" not given (default), read all bands
         bands = ...
         if toa:
-            bands = dn_to_toa(bands))
+            bands = dn_to_toa(bands)
         return bands
 
     def read_detector_mask(self, bands: Optional[Iterable] = None):
