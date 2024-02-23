@@ -23,6 +23,7 @@ FPA               focal plane assembly
 GDOP              geometric dilution of precision
 GEMS              global monitoring for environment and security
 GIPP              ground image processing parameters
+GML               geographic markup language
 GPS               global positioning system
 GRI               global reference image
 IERS              international Earth rotation & reference systems service
@@ -44,6 +45,7 @@ SIA               Sagnac interferometer assembly
 STR               star tracker
 SWIR              short wave infra-red
 S2                sentinel-2
+TCI               true colour image
 TDOP              time dilution of precision
 TL                tile
 TMA               trim mirror anastigmat

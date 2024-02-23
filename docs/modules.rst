@@ -1,8 +1,16 @@
-generic
--------
+main classes
+------------
 
-advanced processing of flight paths
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+general sentinel-2 product class
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. automodule:: s2d2.sentinel2_product
+    :members:
+
+generic functions
+-----------------
+
+advanced processing of flight paths functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. automodule:: s2d2.orbit_tools
     :members:
 
