@@ -10,3 +10,6 @@ dependencies:
   - pyproj
   - scipy
   - shapely
+  - shutil
+  - urllib
+  - zipfile
