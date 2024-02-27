@@ -3,6 +3,7 @@
 *.eggs
 .ipynb_checkpoints
 
+design
 build
 dist
 .cache
