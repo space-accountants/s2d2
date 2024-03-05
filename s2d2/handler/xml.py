@@ -42,3 +42,11 @@ def get_root_of_table(path, fname=None):
     dom = ElementTree.parse(glob.glob(full_name)[0])
     root = dom.getroot()
     return root
+
+def get_branch(tree_struct, syntax_ending):
+        branch_struct = None
+        for child in tree_struct:
+            if child.tag.endswith(syntax_ending):
+                return child
+        assert (branch_struct is not None), ('metadata not in this part of the xml tree')
+        return branch_struct

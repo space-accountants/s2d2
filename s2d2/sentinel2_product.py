@@ -2,7 +2,7 @@ import numpy as np
 
 from typing import Optional
 
-from .handler.xml import get_root_of_table
+from .handler.xml import get_root_of_table, get_branch
 from .orbit_tools import calculate_correct_mapping
 from .sentinel2_datastrip import Sentinel2Datastrip
 from .sentinel2_tile import Sentinel2Tile
@@ -48,6 +48,8 @@ class Sentinel2Product:
         self.tile = Sentinel2Tile(path)
         self.sensing_time = None
         self.spacecraft = None
+        self.nanval = None
+        self.satval = None
 
     def load_metadata(self) -> None:
         """ load meta-data from the product file (MTD_TL.xml)
@@ -58,7 +60,7 @@ class Sentinel2Product:
 
         .. code-block:: text
 
-            * MTD_TL.xml
+            * MTD_MSIL1C.xml
             └ n1:Level-1C_Tile_ID
                ├ n1:General_Info
                │  ├ Product_Info
@@ -84,12 +86,33 @@ class Sentinel2Product:
                └ n1:Quality_Indicators_Info
         """
         root = get_root_of_table()
+
+        gnrl_info = get_branch(root, 'General_Info')
+        prod_info = get_branch(gnrl_info, 'Product_Info')
+        data_take = get_branch(prod_info, 'Datatake')
+        self._get_spacecraft_from_xmlstruct(data_take)
+
+        prod_org = get_branch(root, 'Product_Organisation')
+        imag_chr = get_branch(prod_org, 'Product_Image_Characteristics')
+
+
         # read_sentinel2.read_sensing_time_s2
         self.sensing_time = ...
-        self.spacecraft = 'A' # _get_spacecraft_s2_from_root(root)
 
         self.tile.load_metadata()
         self.datastrip.load_metadata()
+
+    def _get_spacecraft_from_xmlstruct(self, data_take):
+        platform = None
+        for field in data_take:
+            if field.tag == 'SPACECRAFT_NAME':
+                platform = field.text[-1].upper()
+        if platform is None: return
+        self.spacecraft = platform
+
+    def _get_special_image_values(self, imag_chr):
+        Special_Values
+        SPECIAL_VALUE_TEXT
 
     def get_flight_bearing_from_gnss(self) -> np.ndarray:
         # sensor_readings_sentinel2.get_flight_bearing_from_gnss_s2
