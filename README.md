@@ -1,5 +1,7 @@
 # S2D2: Sentinel-2 data deepening
 
+![s2d2-logo](docs/_images/logo-s2d2.jpg)
+
 [![github repo badge](https://img.shields.io/badge/github-repo-000.svg?logo=github&labelColor=gray&color=blue)](https://github.com/space-accountants/s2d2)
 [![github license badge](https://img.shields.io/github/license/space-accountants/s2d2)](https://github.com/space-accountants/s2d2)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10654893.svg)](https://doi.org/10.5281/zenodo.10654893)
