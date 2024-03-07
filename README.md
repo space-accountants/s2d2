@@ -62,8 +62,12 @@ pip install .
 ```
 
 ## Documentation
+<div align='right'>
 
-Read the full project documentation at [readthedocs](https://s2d2.readthedocs.io).
+  [![Documentation Status](https://readthedocs.org/projects/s2d2/badge/?version=latest)](https://s2d2.readthedocs.io/en/latest/?badge=latest)
+
+</div>
+Read the full project documentation at [s2d2.readthedocs.io](https://s2d2.readthedocs.io).
 
 ## Contributing to s2d2 
 <div align='right'>
