@@ -65,7 +65,12 @@ pip install .
 
 Read the full project documentation at [readthedocs](https://s2d2.readthedocs.io).
 
-## Contributing to s2d2 <div style="text-align: justify">[![GitHub contributors](https://img.shields.io/github/contributors/space-accountants/s2d2.svg)](https://github.com/space-accountants/s2d2/graphs/contributors)</div>
+## Contributing to s2d2 
+<div align='right'>
+
+  [![GitHub contributors](https://img.shields.io/github/contributors/space-accountants/s2d2.svg)](https://github.com/space-accountants/s2d2/graphs/contributors)
+
+</div>
 
 If you want to contribute to the development of s2d2,
 have a look at the [contribution guidelines](CONTRIBUTING.md).
