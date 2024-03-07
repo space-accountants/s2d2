@@ -38,9 +38,11 @@ MSI               multi spectral instrument
 NOF SV            number of space vehicles
 NORAD             north american aerospace defense satellite catalog number
 NSM               navigation solution method
+PDI               product data item
 PDOP              position dilution of precision
 POD               precise orbit determination
 QI                quality information
+SAFE              standard archive format for Europe
 SIA               Sagnac interferometer assembly
 STR               star tracker
 SWIR              short wave infra-red
