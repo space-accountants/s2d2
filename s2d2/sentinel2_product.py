@@ -93,8 +93,8 @@ class Sentinel2Product:
         self._get_spacecraft_from_xmlstruct(data_take)
 
         prod_org = get_branch(root, 'Product_Organisation')
-        imag_chr = get_branch(prod_org, 'Product_Image_Characteristics')
-
+        imag_spc = get_branch(prod_org, 'Product_Image_Characteristics')
+        self._get_special_image_values(imag_spc)
 
         # read_sentinel2.read_sensing_time_s2
         self.sensing_time = ...
@@ -110,9 +110,10 @@ class Sentinel2Product:
         if platform is None: return
         self.spacecraft = platform
 
-    def _get_special_image_values(self, imag_chr):
-        Special_Values
-        SPECIAL_VALUE_TEXT
+    def _get_special_image_values(self, imag_spc):
+        print('.')
+        #Special_Values
+        #SPECIAL_VALUE_TEXT
 
     def get_flight_bearing_from_gnss(self) -> np.ndarray:
         # sensor_readings_sentinel2.get_flight_bearing_from_gnss_s2
