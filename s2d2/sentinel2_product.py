@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 from typing import Optional
@@ -85,15 +86,17 @@ class Sentinel2Product:
                │  └ Tile_Angles
                └ n1:Quality_Indicators_Info
         """
-        root = get_root_of_table()
+
+        assert os.path.exists(self.path), 'folder does not seem to exist'
+
+        root = get_root_of_table(self.path, fname='MTD_MSIL1C.xml')
 
         gnrl_info = get_branch(root, 'General_Info')
         prod_info = get_branch(gnrl_info, 'Product_Info')
         data_take = get_branch(prod_info, 'Datatake')
         self._get_spacecraft_from_xmlstruct(data_take)
 
-        prod_org = get_branch(root, 'Product_Organisation')
-        imag_spc = get_branch(prod_org, 'Product_Image_Characteristics')
+        imag_spc = get_branch(gnrl_info, 'Product_Image_Characteristics')
         self._get_special_image_values(imag_spc)
 
         # read_sentinel2.read_sensing_time_s2
@@ -111,9 +114,12 @@ class Sentinel2Product:
         self.spacecraft = platform
 
     def _get_special_image_values(self, imag_spc):
-        print('.')
-        #Special_Values
-        #SPECIAL_VALUE_TEXT
+        for spec in imag_spc:
+            if spec.tag == 'Special_Values':
+                if spec[0].text == 'NODATA':
+                    self.nanval = int(spec[1].text)
+                elif spec[0].text == 'SATURATED':
+                    self.satval =  int(spec[1].text)
 
     def get_flight_bearing_from_gnss(self) -> np.ndarray:
         # sensor_readings_sentinel2.get_flight_bearing_from_gnss_s2

@@ -2,7 +2,6 @@ name: s2d2
 channels:
   - conda-forge
 dependencies:
-  - datetime
   - gdal
   - geopandas
   - numpy
