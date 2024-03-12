@@ -3,11 +3,12 @@
 
 import glob
 import os
-from xml.etree import ElementTree
 
+import xml.etree.ElementTree as ElementTree
 import numpy as np
 
-def get_array_from_xml(tree_struc):
+
+def get_array_from_xml(tree_struc: ElementTree.Element) -> np.ndarray:
     """ transform data in xml-string to numpy array
 
     Parameters
@@ -31,7 +32,9 @@ def get_array_from_xml(tree_struc):
             t_n = np.concatenate((t_n, [t_row]), 0)
     return t_n
 
-def get_root_of_table(path, fname=None):
+
+def get_root_of_table(path: str,
+                      fname: str = None) -> ElementTree:
     if fname is None:
         full_name = path
     else:
@@ -43,7 +46,9 @@ def get_root_of_table(path, fname=None):
     root = dom.getroot()
     return root
 
-def get_branch(tree_struct, syntax_ending):
+
+def get_branch(tree_struct: ElementTree,
+               syntax_ending: str) -> ElementTree.Element:
         branch_struct = None
         for child in tree_struct:
             if child.tag.endswith(syntax_ending):
