@@ -16,6 +16,7 @@ class Sentinel2Tile:
         self.path = path
         self.tile_id = None
         self.mgrs_id = None
+        self.datastrip_id = None
 
         # image specifics
         self.resolution = [10, 20, 60]
@@ -88,6 +89,8 @@ class Sentinel2Tile:
         for field in general_info:
             if field.tag == 'TILE_ID':
                 self.tile_id = field.text
+            elif field.tag == 'DATASTRIP_ID':
+                self.datastrip_id = field.text
         self.mgrs_id = self.tile_id.split('_')[-2]
 
     def _get_crs_s2_from_xmltree(self,

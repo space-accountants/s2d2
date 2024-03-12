@@ -113,15 +113,16 @@ class Sentinel2Product:
         gran_org = get_branch(imag_org, 'Granule_List')
 
         # get location where imagery is situated
-        self._get_image_dir(gran_org)
+        self._get_sub_dirs(gran_org)
         self.tile.path = os.path.join(self.path, os.path.dirname(self.rel_img_dir))
         self.tile.load_metadata()
+
+        self.datastrip.path = os.path.join(self.path, self.rel_ds_dir)
+        self.datastrip.load_metadata()
 
         # read_sentinel2.read_sensing_time_s2
         self.sensing_time = ...
 
-
-        self.datastrip.load_metadata()
 
     def _get_spacecraft_from_xmlstruct(self, data_take) -> None:
         platform = None
@@ -139,9 +140,14 @@ class Sentinel2Product:
                 elif spec[0].text == 'SATURATED':
                     self.satval =  int(spec[1].text)
 
-    def _get_image_dir(self, gran_org) -> None:
+    def _get_sub_dirs(self, gran_org) -> None:
+        # get relative path where the tile metadata is situated
         rel_path = os.path.dirname(gran_org[0][0].text)
         self.rel_img_dir = rel_path
+
+        # get relative path where the datastrip metadata is situated
+        datastrip_id = gran_org[0].attrib['datastripIdentifier']
+        self.rel_ds_dir = os.path.join('DATASTRIP', '_'.join(datastrip_id.split('_')[4:-1]))
 
 
     def get_flight_bearing_from_gnss(self) -> np.ndarray:
