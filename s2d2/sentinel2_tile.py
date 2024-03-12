@@ -3,33 +3,34 @@ from osgeo import osr
 import xml.etree.ElementTree as ElementTree
 
 from .checking.naming import check_mgrs_code
-from .handler.xml import get_root_of_table, get_branch
+from .handler.xml import get_root_of_table, get_branch, get_array_from_xml
 from .typing import Path
 from .sentinel2_instrument import CENTRAL_WAVELENGTH_MSI, dn_to_toa
-
+from .sentinel2_grid import Sentinel2Anglegrid
 
 class Sentinel2Tile:
     def __init__(self, path: Path) -> None:
         # add as optional paths of all files used here?
         self.path = path
         self.orbit_number = None
-        self.sun_azimuth = None
-        self.sun_zenith = None
-        self.sun_azimuth_mean = None
-        self.sun_zenith_mean = None
-        self.view_azimuth = None
-        self.view_zenith = None
-
-        # mapping specifics
-        self.crs = None
-        self.epsg = None
-        self.utmzone = None
-        self.geotransform = None
 
         # image specifics
         self.resolution = [10, 20, 60]
         self.rows = dict.fromkeys(self.resolution)
         self.columns = dict.fromkeys(self.resolution)
+
+        # mapping specifics
+        self.crs = None
+        self.epsg = None
+        self.utmzone = None
+        self.geotransforms = dict.fromkeys(self.resolution, [None] * 6)
+
+        # acquisition and solar angles
+        self.sun_angle = Sentinel2Anglegrid()
+        self.view_angle = Sentinel2Anglegrid()
+        self.sun_azimuth_mean = None
+        self.sun_zenith_mean = None
+
 
     def __str__(self):
         return f"{self.path}({self.epsg})"
@@ -70,18 +71,22 @@ class Sentinel2Tile:
         geocoding = get_branch(geom_info, 'Tile_Geocoding')
 
         self._get_crs_s2_from_xmltree(geocoding)
-        self._get_image_dimensions(geocoding)
+        self._get_image_dimensions_from_xmltree(geocoding)
+        self._get_geotransforms_from_xmltree(geocoding)
+
+        tile_ang = get_branch(geom_info, 'Tile_Angles')
+        self._get_sunangles_from_xmltree(tile_ang)
+        self._get_mean_sunangles_from_xmltree(tile_ang)
+
+        # read_sentinel2.read_mean_sun_angles_s2
+        self.sun_azimuth = ...
+        self.sun_zenith = ...
 
         # read_sentinel2.read_geotransform_s2
         self.geotransform = ...
         # read_sentinel2.read_orbit_number_s2
         self.orbit_number = ...
-        # read_sentinel2.read_sun_angles_s2
-        self.sun_azimuth = ...
-        self.sun_zenith = ...
-        # read_sentinel2.read_mean_sun_angles_s2
-        self.sun_azimuth_mean = ...
-        self.sun_zenith_mean = ...
+
         # read_sentinel2.read_view_angles_s2
         self.view_azimuth = ...
         self.view_zenith = ...
@@ -101,8 +106,8 @@ class Sentinel2Tile:
         self.crs = crs
 
 
-    def _get_image_dimensions(self,
-                              geocoding: ElementTree.Element) -> None:
+    def _get_image_dimensions_from_xmltree(self,
+                                           geocoding: ElementTree.Element) -> None:
         for box in geocoding:
             if not (box.tag == 'Size'): continue
             for field in box:
@@ -110,6 +115,66 @@ class Sentinel2Tile:
                     self.rows[int(box.attrib['resolution'])] = int(field.text)
                 elif field.tag == 'NCOLS':
                     self.columns[int(box.attrib['resolution'])] = int(field.text)
+
+
+    def _get_geotransforms_from_xmltree(self,
+                                        geocoding: ElementTree.Element) -> None:
+
+        for box in geocoding:
+            if not (box.tag == 'Geoposition'): continue
+            gt = self.geotransforms[int(box.attrib['resolution'])].copy()
+            for field in box:
+                if field.tag == 'ULX':
+                    gt[0] = float(field.text)
+                elif field.tag == 'XDIM':
+                    gt[1] = float(field.text)
+                    gt[2] = 0.
+                elif field.tag == 'ULY':
+                    gt[3] = float(field.text)
+                elif field.tag == 'YDIM':
+                    gt[4] = 0.
+                    gt[5] = float(field.text)
+            self.geotransforms = {**self.geotransforms,
+                                  int(box.attrib['resolution']): gt
+                                  }
+
+
+    def _get_sunangles_from_xmltree(self,
+                                    tileangles: ElementTree.Element) -> None:
+        for grids in tileangles:
+            if not (grids.tag == 'Sun_Angles_Grid'): continue
+
+            angles, col_step, row_step = None, None, None
+            for instance in grids:
+                for field in instance:
+                    if field.tag == 'Values_List':
+                        angle = get_array_from_xml(field)
+                    elif field.tag == 'COL_STEP':
+                        col_step = int(field.text)
+                        # field.attrib['unit']
+                    elif field.tag == 'ROW_STEP':
+                        row_step = int(field.text)
+                # update grids
+                if (instance.tag == 'Zenith'):
+                    self.sun_angle.zenith = angles
+                elif (instance.tag == 'Azimuth'):
+                    self.sun_angle.azimuth = angles
+
+            self.sun_angle.geotransform[1] = col_step
+            self.sun_angle.geotransform[5] = row_step
+            self.sun_angle.unit = 'deg'
+
+
+    def _get_mean_sunangles_from_xmltree(self,
+                                         tileangles: ElementTree.Element) -> None:
+        for grids in tileangles:
+            if not (grids.tag == 'Mean_Sun_Angle'): continue
+
+            for instance in grids:
+                if instance.tag == 'ZENITH_ANGLE':
+                    self.sun_zenith = float(instance.text)
+                elif instance.tag == 'AZIMUTH_ANGLE':
+                    self.sun_azimuth = float(instance.text)
 
 
     def read_band(self, band: str, toa: bool = False):
