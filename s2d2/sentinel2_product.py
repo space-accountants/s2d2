@@ -51,6 +51,8 @@ class Sentinel2Product:
         self.spacecraft = None
         self.nanval = None
         self.satval = None
+        self.rel_img_dir = None
+        self.rel_ds_dir = None
 
     def load_metadata(self) -> None:
         """ load meta-data from the product file (MTD_TL.xml)
@@ -98,14 +100,21 @@ class Sentinel2Product:
 
         imag_spc = get_branch(gnrl_info, 'Product_Image_Characteristics')
         self._get_special_image_values(imag_spc)
+        imag_org = get_branch(prod_info, 'Product_Organisation')
+        gran_org = get_branch(imag_org, 'Granule_List')
+
+        # get location where imagery is situated
+        self._get_image_dir(gran_org)
+        self.tile.path = os.path.join(self.path, os.path.dirname(self.rel_img_dir))
+        self.tile.load_metadata()
 
         # read_sentinel2.read_sensing_time_s2
         self.sensing_time = ...
 
-        self.tile.load_metadata()
+
         self.datastrip.load_metadata()
 
-    def _get_spacecraft_from_xmlstruct(self, data_take):
+    def _get_spacecraft_from_xmlstruct(self, data_take) -> None:
         platform = None
         for field in data_take:
             if field.tag == 'SPACECRAFT_NAME':
@@ -113,13 +122,18 @@ class Sentinel2Product:
         if platform is None: return
         self.spacecraft = platform
 
-    def _get_special_image_values(self, imag_spc):
+    def _get_special_image_values(self, imag_spc) -> None:
         for spec in imag_spc:
             if spec.tag == 'Special_Values':
                 if spec[0].text == 'NODATA':
                     self.nanval = int(spec[1].text)
                 elif spec[0].text == 'SATURATED':
                     self.satval =  int(spec[1].text)
+
+    def _get_image_dir(self, gran_org) -> None:
+        rel_path = os.path.dirname(gran_org[0][0].text)
+        self.rel_img_dir = rel_path
+
 
     def get_flight_bearing_from_gnss(self) -> np.ndarray:
         # sensor_readings_sentinel2.get_flight_bearing_from_gnss_s2

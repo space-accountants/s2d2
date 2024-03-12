@@ -56,7 +56,7 @@ class Sentinel2Tile:
         """
 
         # only metadata loading/parsing happening here
-        root = get_root_of_table(self.path, fname=)
+        root = get_root_of_table(self.path, fname='MTD_TL.xml')
 
         geom_info = get_branch(root, 'Geometric_Info')
         geocoding = get_branch(geom_info, 'Tile_Geocoding')
