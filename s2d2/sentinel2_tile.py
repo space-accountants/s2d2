@@ -1,5 +1,6 @@
 from typing import Iterable, Optional
 from osgeo import osr
+import xml.etree.ElementTree as ElementTree
 
 from .checking.naming import check_mgrs_code
 from .handler.xml import get_root_of_table, get_branch
@@ -11,7 +12,6 @@ class Sentinel2Tile:
     def __init__(self, path: Path) -> None:
         # add as optional paths of all files used here?
         self.path = path
-        self.geotransform = None
         self.orbit_number = None
         self.sun_azimuth = None
         self.sun_zenith = None
@@ -19,9 +19,17 @@ class Sentinel2Tile:
         self.sun_zenith_mean = None
         self.view_azimuth = None
         self.view_zenith = None
+
+        # mapping specifics
         self.crs = None
         self.epsg = None
         self.utmzone = None
+        self.geotransform = None
+
+        # image specifics
+        self.resolution = [10, 20, 60]
+        self.rows = dict.fromkeys(self.resolution)
+        self.columns = dict.fromkeys(self.resolution)
 
     def __str__(self):
         return f"{self.path}({self.epsg})"
@@ -62,6 +70,7 @@ class Sentinel2Tile:
         geocoding = get_branch(geom_info, 'Tile_Geocoding')
 
         self._get_crs_s2_from_xmltree(geocoding)
+        self._get_image_dimensions(geocoding)
 
         # read_sentinel2.read_geotransform_s2
         self.geotransform = ...
@@ -79,7 +88,8 @@ class Sentinel2Tile:
         self.tile = ...
         self.utmzone = None
 
-    def _get_crs_s2_from_xmltree(self, geocoding):
+    def _get_crs_s2_from_xmltree(self,
+                                 geocoding: ElementTree.Element) -> None:
         epsg = None
         for field in geocoding:
             if field.tag == 'HORIZONTAL_CS_CODE':
@@ -89,6 +99,18 @@ class Sentinel2Tile:
         crs.ImportFromEPSG(epsg)
         self.epsg = epsg
         self.crs = crs
+
+
+    def _get_image_dimensions(self,
+                              geocoding: ElementTree.Element) -> None:
+        for box in geocoding:
+            if not (box.tag == 'Size'): continue
+            for field in box:
+                if field.tag == 'NROWS':
+                    self.rows[int(box.attrib['resolution'])] = int(field.text)
+                elif field.tag == 'NCOLS':
+                    self.columns[int(box.attrib['resolution'])] = int(field.text)
+
 
     def read_band(self, band: str, toa: bool = False):
         pass

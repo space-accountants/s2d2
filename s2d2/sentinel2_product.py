@@ -16,8 +16,8 @@ class Sentinel2Product:
 
     Notes
     -----
-    The metadata is scattered over the file structure of Sentinel-2, Level
-    1C meta data files. The folders and files are as follows:
+    For Sentinel-2 Level 1C the metadata is scattered over the files and folders.
+    In order to make this organization more understandable, the following visualization is made:
 
     .. code-block:: text
 
