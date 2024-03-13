@@ -1,6 +1,50 @@
 import pandas as pd
 import numpy as np
 
+from datetime import date
+
+S2_PLATFORM_SPECS = {
+        'COSPAR': ['2015-028A', '2017-013A'],
+        'NORAD': [40697, 42063],
+        'ESOC': [266, 267],
+        'launch_date': [date(2015, 6, 23), date(2017, 3, 7)],
+        'J': [ [[558, 30, -30], [30, 819, 30], [-30, 30, 1055]], [[558, 30, -30], [30, 819, 30], [-30, 30, 1055]]]
+}
+
+S2_GNSS_SPECS = {
+    'X': [232., 232.],
+    'Y': [227.5, -72.5],
+    'Z': [-810., -810.],
+    'R': [[[-0.966, 0., -0.259], [0., 1., 0.], [0.259, 0., -0.966]],
+         [[-0.966, 0., -0.259], [0., 1., 0.], [0.259, 0., -0.966]]]
+}
+
+class Sentinel2Platform:
+    def __init__(self, spacecraft: str) -> None:
+        df = pd.DataFrame.from_dict(data=S2_PLATFORM_SPECS, orient='index', columns=['A', 'B'])
+        assert spacecraft in df.keys(), f'please provide correct spacecraft id, that is: {list(df.columns.values)}'
+
+        self.id_norad = df[spacecraft]['NORAD']
+        self.id_cospar = df[spacecraft]['COSPAR']
+        self.id_esoc = df[spacecraft]['ESOC']
+
+        self.mass = None
+        self.drag = df[spacecraft]['J']
+
+class solarpanel:
+    def __init__(self) -> None:
+        self.dimensions = None
+        self.orientation = None
+        self.angularsuntrackrate = 0.06 # [deg / sec]
+        self.angularrewindrate = 0.205 # [deg / sec]
+        self.angularrange = 239 # [deg]
+
+class gnss:
+    def __init__(self, id: str) -> None:
+        df = pd.DataFrame.from_dict(S2_GNSS_SPECS, orient="index", columns=['GPS-A', 'GPS-B'])
+        self.dimensions = [df[id]['X'], df[id]['Y'], df[id]['Z']]
+        self.orientation = df[id]['R']
+
 def list_jitter_frequencies_s2():
     """
 
@@ -64,8 +108,6 @@ def list_gps_antenna_coords():
     return df
 
 # https://documentation.dataspace.copernicus.eu/Data/SentinelMissions/Sentinel2.html#sentinel-2-precise-orbit-determination-pod-products
-
-# ESOC ID 266 for S2A and 267 for S2B
 
 Manoeuvre history file format description (header)
 Key Type Description

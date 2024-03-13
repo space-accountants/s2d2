@@ -40,15 +40,6 @@ class Sentinel2Product:
         └ MTD_MSIL1C.xml <- metadata about the product
     """
 
-    datastrip: Sentinel2Datastrip
-    tile: Sentinel2Tile
-    path: Path
-    rel_img_dir: Path
-    rel_ds_dir: Path
-    spacecraft: str
-    nanval: int
-    satval: int
-
     def __init__(self, path: Optional[Path] = None) -> None:
         # add as optional paths of all files used here?
         # default calculate relative paths for datastrip and granule

@@ -64,21 +64,10 @@ class Sentinel2Datastrip:
 
         # read_sentinel2.read_detector_time_s2
         self.detector_time = ...
-        # read_sentinel2.get_raw_str_s2
-        # also in read_sentinel2.get_flight_orientation_s2 ?
-        self.sat_time = ...  # full name would make it clearer
-        self.sat_ang = ...  # full name would make it clearer
-        self.sat_quat = ...  # full name would make it clearer
-        self.sat_str = ...  # full name would make it clearer
+
         # read_sentinel2.get_integration_and_sampling_time_s2
         self.integration_time = ...
         self.sampling_time = ...
-        # sensor_readings_sentinel2.get_flight_path_s2
-        self.sat_time = ... # full name would make it clearer - is it same as from read_sentinel2.get_raw_str_s2?
-        self.sat_xyz = ... # full name would make it clearer
-        self.sat_err = ... # full name would make it clearer
-        self.sat_uvw = ... # full name would make it clearer
-
 
     def _get_ids_from_xmltree(self,
                               general_info: ElementTree.Element) -> None:
