@@ -84,6 +84,121 @@ class Sentinel2Tile:
         self._get_sunangles_from_xmltree(tile_ang)
         self._get_viewangles_from_xmltree(tile_ang)
 
+    def get_upperleft(self) -> list[float]:
+        return list(self.geotransforms.values())[0][slice(0, -1, 3)]
+
+    def read_band(self, band: str, toa: bool = False):
+        pass
+
+    def read_bands(self, bands: Optional[Iterable] = None, toa: bool = False):
+        # if "bands" not given (default), read all bands
+        bands = ...
+        if toa:
+            bands = dn_to_toa(bands)
+        return bands
+
+    def read_detector_mask(self, bands: Optional[Iterable] = None):
+        # read_sentinel2.read_detector_mask
+        # if "bands" not given (default), read all bands
+        pass
+
+    def read_cloud_mask(self):
+        # read_sentinel2.read_cloud_mask
+        # should this be here?
+        pass
+
+    def get_sun_angle(self, angle: str, res: int = 10):
+        # here is actually where the interpolation happens
+        pass
+
+    def get_view_angle(self, angle: str, bands: Optional[Iterable] = None,
+                       res: int = 10):
+        # here is actually where the interpolation happens
+        pass
+
+    def get_flight_bearing(self, detector_mask):
+        # read_sentinel2.get_flight_bearing_from_detector_mask_s2
+        # here the calculationn from the detector mask
+        pass
+
+    def get_utmzone_from_tile_code(self):
+        """
+
+        Returns
+        -------
+        self.utmzone : integer
+            code used to denote the number of the projection column of UTM
+
+        See Also
+        --------
+        .get_epsg_from_mgrs_tile, .get_crs_from_mgrs_tile
+
+        Notes
+        -----
+        The tile structure is a follows "AABCC"
+            * "AA" utm zone number, starting from the East, with steps of 8 degrees
+            * "B" latitude zone, starting from the South, with steps of 6 degrees
+        """
+        tile_code = check_mgrs_code(tile_code)
+        return int(tile_code[:2])
+
+    def get_epsg_from_mgrs_tile(self):
+        """
+
+        Returns
+        -------
+        self.epsg : integer
+            code used to denote a certain database entry
+
+        See Also
+        --------
+        get_utmzone_from_mgrs_tile
+        get_crs_from_mgrs_tile
+
+        Notes
+        -----
+        The tile structure is a follows "AABCC"
+            * "AA" utm zone number, starting from the East, with steps of 8 degrees
+            * "B" latitude zone, starting from the South, with steps of 6 degrees
+        """
+        tile_code = check_mgrs_code(tile_code)
+        self.get_utmzone_from_tile_code(tile_code)
+        epsg_code = 32600 + utm_num
+
+        # N to X are in the Northern hemisphere
+        if tile_code[2] < 'N': epsg_code += 100
+        return epsg_code
+
+    def get_crs_from_mgrs_tile(tile_code):
+        """
+
+        Parameters
+        ----------
+        tile_code : string
+            US Military Grid Reference System (MGRS) tile code
+
+        Returns
+        -------
+        crs : osgeo.osr.SpatialReference
+            target projection system
+
+        See Also
+        --------
+        .get_utmzone_from_mgrs_tile, .get_utmzone_from_mgrs_tile
+
+        Notes
+        -----
+        The tile structure is a follows "AABCC"
+            * "AA" utm zone number, starting from the East, with steps of 8 degrees
+            * "B" latitude zone, starting from the South, with steps of 6 degrees
+        """
+        tile_code = check_mgrs_code(tile_code)
+        epsg_code = get_epsg_from_mgrs_tile(tile_code)
+
+        crs = osr.SpatialReference()
+        crs.ImportFromEPSG(epsg_code)
+        return crs
+
     def _get_tile_id_from_xmltree(self,
                                  general_info: ElementTree.Element) -> None:
         for field in general_info:
@@ -218,119 +333,3 @@ class Sentinel2Tile:
             self.view_angle.geotransform[5] = -1*row_step
             self.view_angle.unit = 'deg'
             self.view_angle.epsg = self.epsg
-
-
-    def get_upperleft(self) -> list[float]:
-        return list(self.geotransforms.values())[0][slice(0, -1, 3)]
-
-    def read_band(self, band: str, toa: bool = False):
-        pass
-
-    def read_bands(self, bands: Optional[Iterable] = None, toa: bool = False):
-        # if "bands" not given (default), read all bands
-        bands = ...
-        if toa:
-            bands = dn_to_toa(bands)
-        return bands
-
-    def read_detector_mask(self, bands: Optional[Iterable] = None):
-        # read_sentinel2.read_detector_mask
-        # if "bands" not given (default), read all bands
-        pass
-
-    def read_cloud_mask(self):
-        # read_sentinel2.read_cloud_mask
-        # should this be here?
-        pass
-
-    def get_sun_angle(self, angle: str, res: int = 10):
-        # here is actually where the interpolation happens
-        pass
-
-    def get_view_angle(self, angle: str, bands: Optional[Iterable] = None,
-                       res: int = 10):
-        # here is actually where the interpolation happens
-        pass
-
-    def get_flight_bearing(self, detector_mask):
-        # read_sentinel2.get_flight_bearing_from_detector_mask_s2
-        # here the calculationn from the detector mask
-        pass
-
-    def get_utmzone_from_tile_code(self):
-        """
-
-        Returns
-        -------
-        self.utmzone : integer
-            code used to denote the number of the projection column of UTM
-
-        See Also
-        --------
-        .get_epsg_from_mgrs_tile, .get_crs_from_mgrs_tile
-
-        Notes
-        -----
-        The tile structure is a follows "AABCC"
-            * "AA" utm zone number, starting from the East, with steps of 8 degrees
-            * "B" latitude zone, starting from the South, with steps of 6 degrees
-        """
-        tile_code = check_mgrs_code(tile_code)
-        return int(tile_code[:2])
-
-    def get_epsg_from_mgrs_tile(self):
-        """
-
-        Returns
-        -------
-        self.epsg : integer
-            code used to denote a certain database entry
-
-        See Also
-        --------
-        get_utmzone_from_mgrs_tile
-        get_crs_from_mgrs_tile
-
-        Notes
-        -----
-        The tile structure is a follows "AABCC"
-            * "AA" utm zone number, starting from the East, with steps of 8 degrees
-            * "B" latitude zone, starting from the South, with steps of 6 degrees
-        """
-        tile_code = check_mgrs_code(tile_code)
-        self.get_utmzone_from_tile_code(tile_code)
-        epsg_code = 32600 + utm_num
-
-        # N to X are in the Northern hemisphere
-        if tile_code[2] < 'N': epsg_code += 100
-        return epsg_code
-
-    def get_crs_from_mgrs_tile(tile_code):
-        """
-
-        Parameters
-        ----------
-        tile_code : string
-            US Military Grid Reference System (MGRS) tile code
-
-        Returns
-        -------
-        crs : osgeo.osr.SpatialReference
-            target projection system
-
-        See Also
-        --------
-        .get_utmzone_from_mgrs_tile, .get_utmzone_from_mgrs_tile
-
-        Notes
-        -----
-        The tile structure is a follows "AABCC"
-            * "AA" utm zone number, starting from the East, with steps of 8 degrees
-            * "B" latitude zone, starting from the South, with steps of 6 degrees
-        """
-        tile_code = check_mgrs_code(tile_code)
-        epsg_code = get_epsg_from_mgrs_tile(tile_code)
-
-        crs = osr.SpatialReference()
-        crs.ImportFromEPSG(epsg_code)
-        return crs
