@@ -18,6 +18,7 @@ pylint-report.txt
 
 docs/_build
 data
+papers
 
 # ide
 .idea

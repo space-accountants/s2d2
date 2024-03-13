@@ -24,6 +24,8 @@ class Sentinel2Datastrip:
         self.tile_list = None
 
         self.gps_flightpath = None
+        self.attitudes_corrected = None
+        self.attitudes_raw = None
 
         self.detector_time = None
         self.sat_time = None
@@ -43,15 +45,22 @@ class Sentinel2Datastrip:
         img_info = get_branch(root, 'Image_Data_Info')
         tile_info = get_branch(img_info, 'Tiles_Information')
         tile_list = get_branch(tile_info, 'Tile_List')
-        self._get_tile_list(tile_list)
+        self._get_tile_list_from_xmltree(tile_list)
 
         sen_conf = get_branch(img_info, 'Sensor_Configuration')
 
         sat_anc = get_branch(root, 'Satellite_Ancillary_Data_Info')
         sat_eph = get_branch(sat_anc, 'Ephemeris')
-        gps_pts = get_branch(sat_eph, 'GPS_Points_List')
 
-        self._get_gps_flightpath(gps_pts)
+        gps_pts = get_branch(sat_eph, 'GPS_Points_List')
+        self._get_gps_flightpath_from_xmltree(gps_pts)
+
+        aocs_pts = get_branch(sat_eph, 'AOCS_Ephemeris_List')
+        self._get_aocs_flightpath_from_xmltree(aocs_pts)
+
+        sat_att = get_branch(sat_anc, 'Attitudes')
+        cor_att = get_branch(sat_att, 'Corrected_Attitudes')
+        self._get_corrected_attitudes_from_xmltree(cor_att)
 
         # read_sentinel2.read_detector_time_s2
         self.detector_time = ...
@@ -91,15 +100,53 @@ class Sentinel2Datastrip:
             if instance.tag == 'DOWNLINK_ORBIT_NUMBER':
                 self.orbit_counter = int(instance.text)
 
-    def _get_tile_list(self,
-                       tile_list: ElementTree.Element) -> None:
+    def _get_tile_list_from_xmltree(self, tile_list: ElementTree.Element) -> None:
         tl = []
         for tile in tile_list:
             tl.append(tile.attrib['tileId'])
         self.tile_list = tl
 
 
-    def _get_gps_flightpath(self, gps_list: ElementTree.Element) -> None:
+    def _get_gps_flightpath_from_xmltree(self, gps_list: ElementTree.Element) -> None:
+        """
+        Notes
+        -----
+        The metadata structure of MTD_DS looks like:
+
+        .. code-block:: text
+
+            * MTD_DS.xml
+            └ n1:Level-1C_DataStrip_ID
+               ├ n1:General_Info
+               ├ n1:Image_Data_Info
+               ├ n1:Satellite_Ancillary_Data_Info
+               │  ├ Time_Correlation_Data_List
+               │  ├ Ephemeris
+               │  │  ├ GPS_Number_List
+               │  │  ├ GPS_Points_List
+               │  │  └ AOCS_Ephemeris_List
+               │  │  │  └ AOCS_Ephmeris
+               │  │  │     ├ VALID_FLAG
+               │  │  │     ├ OPSOL_QUALITY
+               │  │  │     ├ POSITION_VALUES
+               │  │  │     ├ VELOCITY_VALUES
+               │  │  │     ├ VELOCITY_ERRORS
+               │  │  │     ├ GPS_TIME
+               │  │  │     ├ NSM
+               │  │  │     ├ QUALITY_INDEX
+               │  │  │     ├ GDOP
+               │  │  │     ├ PDOP
+               │  │  │     ├ TDOP
+               │  │  │     ├ NOF_SV
+               │  │  │     └ TIME_ERROR
+               │  ├ Attitudes
+               │  ├ Thermal_Data
+               │  └ ANC_DATA_REF
+               │
+               ├ n1:Quality_Indicators_Info
+               └ n1:Auxiliary_Data_Info
+        """
+
         df = pd.DataFrame(columns=["pos_x", "pos_y", "pos_z",
                                    "pos_x_err", "pos_y_err", "pos_z_err",
                                    "vel_x", "vel_y", "vel_z",
@@ -144,6 +191,100 @@ class Sentinel2Datastrip:
             df = pd.concat([df, pd.DataFrame.from_dict(entry)], ignore_index=True)
         self.gps_flightpath = df
 
+    def _get_aocs_flightpath_from_xmltree(self, aocs_list: ElementTree.Element) -> None:
+        df = pd.DataFrame(columns=["pos_x", "pos_y", "pos_z",
+                                   "vel_x", "vel_y", "vel_z",
+                                   "time_gps", "orb_ang"])
+        for instance in aocs_list:
+            entry = {}
+            for elem in instance:
+                if elem.tag == 'POSITION_VALUES':
+                    xyz = np.fromstring(elem.text, dtype=float, sep=' ')
+                    if elem.attrib['unit'] == 'mm':
+                        xyz *= 1E-3  # convert to meters
+                    entry.update({"pos_x": [xyz[0]], "pos_y": [xyz[1]], "pos_z": [xyz[2]]})
+                if elem.tag == 'VELOCITY_VALUES':
+                    uvw = np.fromstring(elem.text, dtype=float, sep=' ')
+                    if elem.attrib['unit'] == 'mm/s':
+                        uvw *= 1E-3  # convert to meters per second
+                    entry.update({"vel_x": [xyz[0]], "vel_y": [xyz[1]], "vel_z": [xyz[2]]})
+                elif elem.tag == 'ORBIT_ANGLE':
+                    orb_ang = [float(elem.text)]
+                    if elem.attrib['unit'] == 'rad':
+                        orb_ang = np.rad2deg(orb_ang)[0]  # convert to degrees
+                    entry.update({"orb_ang": [orb_ang]})
+                elif elem.tag == 'GPS_TIME':
+                    entry.update({"time_gps": [np.datetime64(elem.text, 'ns')]})
+            # combine into dataframe
+            df = pd.concat([df, pd.DataFrame.from_dict(entry)], ignore_index=True)
+        self.aocs_flightpath = df
+
+
+    def _get_corrected_attitudes_from_xmltree(self, attitudes_list: ElementTree.Element) -> None:
+        """
+        Notes
+        -----
+        The metadata structure of MTD_DS looks like:
+
+        .. code-block:: text
+
+            * MTD_DS.xml
+            └ n1:Level-1C_DataStrip_ID
+               ├ n1:General_Info
+               ├ n1:Image_Data_Info
+               ├ n1:Satellite_Ancillary_Data_Info
+               │  ├ Time_Correlation_Data_List
+               │  ├ Ephemeris
+               │  ├ Attitudes
+               │  │  └ Corrected_Attitudes
+               │  │  │  └ Values
+               │  │  │     ├ QUATERNION_VALUES
+               │  │  │     ├ QUATERNION_VALIDITY
+               │  │  │     ├ GPS_TIME
+               │  │  │     ├ INUSE_FLAGS
+               │  │  │     ├ AOCS_MODE
+               │  │  │     ├ AOCS_SUBMODE
+               │  │  │     ├ INNOVATION_STR1
+               │  │  │     ├ INNOVATION_STR2
+               │  │  │     └ ATTITUDE_QUALITY_INDICATOR
+               │  ├ Thermal_Data
+               │  └ ANC_DATA_REF
+               ├ n1:Quality_Indicators_Info
+               └ n1:Auxiliary_Data_Info
+
+        These are as follows:
+            - QUATERNION_VALUES: float float float float
+                space separated list of 4 quaternion values ordered as qv1 qv2 qv3 qs
+            - QUATERNION_VALIDITY: bool
+                true if quaternion is valid
+            - GPS_TIME: yyyy-mm-ddThh:mm:ss.s
+            - INUSE_FLAGS: bool bool bool bool bool bool bool ...
+                list of 11 boolean flags separated by whitespace for
+                STR1 STR2 STR3 GPSR-A GPSR-B VCU-A VCU-B IMU-1 IMU-2 IMU-3 IMU-4
+            - AOCS_MODE: int
+            - AOCS_SUBMODE: int
+            - INNOVATION_STR1: float float float
+                difference between GSE filter estimate and second in-use STR measurement
+            - INNOVATION_STR2: float float float
+                difference between GSE filter estimate and second in-use STR measurement
+            - ATTITUDE_QUALITY_INDICATOR: str
+        """
+        df = pd.DataFrame(columns=["quat", "time_gps"])
+        for instance in attitudes_list:
+            entry = {}
+            for elem in instance:
+                if elem.tag == 'QUATERNION_VALUES':
+                    quat = np.fromstring(elem.text, dtype=float, sep=' ')
+                    entry.update({"quat": [quat.tolist()]})
+                elif elem.tag == 'GPS_TIME':
+                    entry.update({"time_gps": [np.datetime64(elem.text, 'ns')]})
+            # combine into dataframe
+            df = pd.concat([df, pd.DataFrame.from_dict(entry)], ignore_index=True)
+        self.attitudes_corrected = df
+
+
+
+#    def _get_corrected_flightpath(self):
 
     def get_altitude(self):
         # sensor_readings_sentinel2.get_flight_path_s2
