@@ -109,48 +109,48 @@ def list_gps_antenna_coords():
 
 # https://documentation.dataspace.copernicus.eu/Data/SentinelMissions/Sentinel2.html#sentinel-2-precise-orbit-determination-pod-products
 
-Manoeuvre history file format description (header)
-Key Type Description
-Epoch Epoch, a23 File last update epoch as YYYY/MM/DD-HH:MM:SS.SSS
-ESOC ID Integer,i3 Satellite ESOC ID (266 for S2A and 267 for S2B)
+#Manoeuvre history file format description (header)
+#Key Type Description
+#Epoch Epoch, a23 File last update epoch as YYYY/MM/DD-HH:MM:SS.SSS
+#ESOC ID Integer,i3 Satellite ESOC ID (266 for S2A and 267 for S2B)
 
-Manoeuvre history file format description (body)
-Epoch Epoch, a23 Burn start or stop time (UTC) as YYYY/MM/DD-HH:MM:SS.SSS
-Acceleration Real, f15.8 First component of acceleration in km/s2
-Acceleration Real, f15.8 Second component of acceleration in km/s2
-Acceleration Real, f15.8 Third component of acceleration in km/s2
-Manoeuvre Integer, i1 Record flag. If >0, this is a manoeuvre start record. If 0, it is a manoeuvre end
-start-end flag record.
-On a start record:
-- value 1 indicates that the components are radial, along-track and cross-
-track respectively
-- value 2 that they are along the J2000.0 X-, Y- and Z- axes respectively
+#Manoeuvre history file format description (body)
+#Epoch Epoch, a23 Burn start or stop time (UTC) as YYYY/MM/DD-HH:MM:SS.SSS
+#Acceleration Real, f15.8 First component of acceleration in km/s2
+#Acceleration Real, f15.8 Second component of acceleration in km/s2
+#Acceleration Real, f15.8 Third component of acceleration in km/s2
+#Manoeuvre Integer, i1 Record flag. If >0, this is a manoeuvre start record. If 0, it is a manoeuvre end
+#start-end flag record.
+#On a start record:
+#- value 1 indicates that the components are radial, along-track and cross-
+#track respectively
+#- value 2 that they are along the J2000.0 X-, Y- and Z- axes respectively
 
-Example:
-2018/04/11-10:00:03.026 266
-2016/04/29-07:25:31.282 -0.62906997D-08 0.89614348D-10-0.50554106D-06 1
-2016/04/29-07:27:12.407 -0.62906997D-08 0.89614348D-10-0.50554106D-06 0
-2016/04/29-15:39:26.552 -0.63265823D-08-0.21231811D-08-0.50738033D-06 1
-2016/04/29-15:41:07.552 -0.63265823D-08-0.21231811D-08-0.50738033D-06 0
+#Example:
+#2018/04/11-10:00:03.026 266
+#2016/04/29-07:25:31.282 -0.62906997D-08 0.89614348D-10-0.50554106D-06 1
+#2016/04/29-07:27:12.407 -0.62906997D-08 0.89614348D-10-0.50554106D-06 0
+#2016/04/29-15:39:26.552 -0.63265823D-08-0.21231811D-08-0.50738033D-06 1
+#2016/04/29-15:41:07.552 -0.63265823D-08-0.21231811D-08-0.50738033D-06 0
 
-Outages file format description (header)
-Key Type Description
-Epoch Epoch, a23 File last update epoch as YYYY/MM/DD-HH:MM:SS.SSS
-File Title String, a12 OUTAGES FILE
-ESOC ID Integer,i3 Satellite ESOC ID (266 for S2A and 267 for S2B)
-Table 4-5: Outages file format description (body)
-Key Type Description
-Epoch Epoch, a23 Outage start epoch as YYYY/MM/DD-HH:MM:SS.SSS
-Epoch Epoch, a23 Outage end epoch as YYYY/MM/DD-HH:MM:SS.SSS
-Outage
-type
-String, a3 Type of outage. It may be: input gap (GAP), manoeuvre (MAN) or a combination of
-both (MIX)
-Example:
-2018/04/18-03:10:06.000 OUTAGES FILE 266
-2000/01/01-00:00:00.000 2016/04/27-04:43:04.000 GAP
-2016/04/28-16:44:34.000 2016/04/29-10:44:14.000 GAP
-2016/04/29-15:39:26.000 2016/04/29-15:41:07.000 MAN
-2016/05/03-12:51:38.000 2016/05/03-12:53:19.000 MAN
-2016/05/05-15:03:47.000 2016/05/06-07:55:35.000 GAP
-2016/05/09-14:36:29.000 2016/05/09-23:59:59.000 MIX
+#Outages file format description (header)
+#Key Type Description
+#Epoch Epoch, a23 File last update epoch as YYYY/MM/DD-HH:MM:SS.SSS
+#File Title String, a12 OUTAGES FILE
+#ESOC ID Integer,i3 Satellite ESOC ID (266 for S2A and 267 for S2B)
+#Table 4-5: Outages file format description (body)
+#Key Type Description
+#Epoch Epoch, a23 Outage start epoch as YYYY/MM/DD-HH:MM:SS.SSS
+#Epoch Epoch, a23 Outage end epoch as YYYY/MM/DD-HH:MM:SS.SSS
+#Outage
+#type
+#String, a3 Type of outage. It may be: input gap (GAP), manoeuvre (MAN) or a combination of
+#both (MIX)
+#Example:
+#2018/04/18-03:10:06.000 OUTAGES FILE 266
+#2000/01/01-00:00:00.000 2016/04/27-04:43:04.000 GAP
+#2016/04/28-16:44:34.000 2016/04/29-10:44:14.000 GAP
+#2016/04/29-15:39:26.000 2016/04/29-15:41:07.000 MAN
+#2016/05/03-12:51:38.000 2016/05/03-12:53:19.000 MAN
+#2016/05/05-15:03:47.000 2016/05/06-07:55:35.000 GAP
+#2016/05/09-14:36:29.000 2016/05/09-23:59:59.000 MIX

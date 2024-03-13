@@ -3,6 +3,7 @@ from osgeo import osr
 
 import xml.etree.ElementTree as ElementTree
 import numpy as np
+import pandas as pd
 
 from .checking.naming import check_mgrs_code
 from .handler.xml import get_root_of_table, get_branch, get_array_from_xml
@@ -33,6 +34,7 @@ class Sentinel2Tile:
         self.sun_azimuth_mean = None
         self.sun_zenith_mean = None
 
+        self.sensing_time = None
 
     def __str__(self):
         return f"{self.path}({self.epsg})"
@@ -206,6 +208,8 @@ class Sentinel2Tile:
                 self.tile_id = field.text
             elif field.tag == 'DATASTRIP_ID':
                 self.datastrip_id = field.text
+            elif field.tag == 'SENSING_TIME':
+                self.sensing_time = pd.Timestamp(field.text)
         self.mgrs_id = self.tile_id.split('_')[-2]
 
     def _get_crs_s2_from_xmltree(self,
