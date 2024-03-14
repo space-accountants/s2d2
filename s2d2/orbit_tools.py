@@ -17,7 +17,7 @@ from .checking.array import (
 from .sentinel2_grid import Sentinel2Anglegrid
 
 
-def wgs84_param():
+def wgs84_param() -> tuple[float, float]:
     """ get paramters of the WGS84 ellipsoid
 
     Returns
@@ -47,7 +47,7 @@ def wgs84_param():
     flattening = 1 / wgs84.GetInvFlattening()
     return major_axis, flattening
 
-def earth_eccentricity():
+def earth_eccentricity() -> float:
     """ get the eccentricity of the WGS84 ellipsoid
 
     Returns
@@ -63,15 +63,15 @@ def earth_eccentricity():
     eccentricity = (2 * flattening) - (flattening**2)
     return eccentricity
 
-def earth_axes():
+def earth_axes() -> tuple[float, float]:
     """ get axis length of the WGS84 ellipsoid
 
     Returns
     -------
     major_axis : float, unit=meter
-        largest axis of the ellipsoid
+        the largest axis of the ellipsoid
     minor_axis : float, unit=meter
-        shortest axis of the ellipsoid
+        the shortest axis of the ellipsoid
 
     See Also
     --------
@@ -82,7 +82,7 @@ def earth_axes():
     minor_axis = major_axis * np.sqrt(1 - eccentricity)
     return major_axis, minor_axis
 
-def standard_gravity():
+def standard_gravity() -> float:
     """
     provide value for the standard gravitational parameter of the Earth
 
@@ -300,7 +300,8 @@ def get_absolute_timing(lat,lon,sat_dict):
     t_bias = T[min_idx] + dd*dT
     return t_bias
 
-def acquisition_angles(p_x,g_x):
+def acquisition_angles(p_x: np.ndarray,
+                       g_x: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """ given satellite and ground coordinates, estimate observation angles"""
     are_two_arrays_equal(p_x, g_x)
 
@@ -338,8 +339,12 @@ def acquisition_angles(p_x,g_x):
     zn = np.rad2deg(np.arccos(los[...,2]))
     return zn, az
 
-def line_of_sight(lat_arr, lon_arr, zn_arr, az_arr,
-                  eccentricity=None, major_axis=None):
+def line_of_sight(lat_arr: np.ndarray,
+                  lon_arr: np.ndarray,
+                  zn_arr: np.ndarray,
+                  az_arr: np.ndarray,
+                  eccentricity: typing.Optional[float] = None,
+                  major_axis: typing.Optional[float] = None) -> tuple[np.ndarray, np.ndarray]:
     """
 
     Parameters
@@ -400,7 +405,10 @@ def line_of_sight(lat_arr, lon_arr, zn_arr, az_arr,
                     radi * (1-eccentricity) * np.sin(lat_arr)]).T
     return sat, g_x
 
-def ground_vec(lat_arr, lon_arr, eccentricity=None, major_axis=None):
+def ground_vec(lat_arr: np.ndarray,
+               lon_arr: np.ndarray,
+               eccentricity: typing.Optional[float] = None,
+               major_axis:typing.Optional[float] = None) -> np.ndarray:
     """ get ground coordinates in Cartesian system
 
     Parameters
