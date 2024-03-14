@@ -26,7 +26,7 @@ class Sentinel2Tile:
 
         # mapping specifics
         self.epsg = None
-        self.geotransforms = dict.fromkeys(self.resolution, [None] * 6)
+        self.geotransforms = dict.fromkeys(self.resolution, tuple([None] * 6))
 
         # acquisition and solar angles
         self.sun_angle = Sentinel2Anglegrid()
@@ -241,18 +241,18 @@ class Sentinel2Tile:
 
         for box in geocoding:
             if not (box.tag == 'Geoposition'): continue
-            gt = self.geotransforms[int(box.attrib['resolution'])].copy()
+            gt = self.geotransforms[int(box.attrib['resolution'])]
             for field in box:
                 if field.tag == 'ULX':
-                    gt[0] = float(field.text)
+                    gt = tuple([float(field.text) if idx == 0 else val for idx, val in enumerate(gt)])
                 elif field.tag == 'XDIM':
-                    gt[1] = float(field.text)
-                    gt[2] = 0.
+                    gt = tuple([float(field.text) if idx == 1 else val for idx, val in enumerate(gt)])
+                    gt = tuple([0. if idx == 2 else val for idx, val in enumerate(gt)])
                 elif field.tag == 'ULY':
-                    gt[3] = float(field.text)
+                    gt = tuple([float(field.text) if idx == 3 else val for idx, val in enumerate(gt)])
                 elif field.tag == 'YDIM':
-                    gt[4] = 0.
-                    gt[5] = float(field.text)
+                    gt = tuple([0. if idx == 4 else val for idx, val in enumerate(gt)])
+                    gt = tuple([float(field.text) if idx == 5 else val for idx, val in enumerate(gt)])
             self.geotransforms = {**self.geotransforms,
                                   int(box.attrib['resolution']): gt
                                   }
@@ -269,22 +269,13 @@ class Sentinel2Tile:
                     if field.tag == 'Values_List':
                         angle = get_array_from_xml(field)
                     elif field.tag == 'COL_STEP':
-                        col_step = int(field.text)
-                        # field.attrib['unit']
+                        col_step = float(field.text)
                     elif field.tag == 'ROW_STEP':
-                        row_step = int(field.text)
+                        row_step = float(field.text)
                 # update grids
-                if (instance.tag == 'Zenith'):
-                    self.sun_angle.zenith = angles
-                elif (instance.tag == 'Azimuth'):
-                    self.sun_angle.azimuth = angles
+                self.sun_angle.add_raster_layer(instance.tag.lower(), angles)
             ul = self.get_upperleft()
-            self.sun_angle.geotransform[0] = ul[0]
-            self.sun_angle.geotransform[1] = col_step
-            self.sun_angle.geotransform[2] = 0
-            self.sun_angle.geotransform[3] = ul[1]
-            self.sun_angle.geotransform[4] = 0
-            self.sun_angle.geotransform[5] = -1*row_step
+            self.sun_angle.geotransform = (ul[0], col_step, 0., ul[1], 0., -1*row_step)
             self.sun_angle.unit = 'deg'
             self.sun_angle.epsg = self.epsg
 
@@ -314,26 +305,12 @@ class Sentinel2Tile:
                     if field.tag == 'Values_List':
                         angles = get_array_from_xml(field)
                     elif field.tag == 'COL_STEP':
-                        col_step = int(field.text)
+                        col_step = float(field.text)
                     elif field.tag == 'ROW_STEP':
-                        row_step = int(field.text)
+                        row_step = float(field.text)
                 # update grids
-                if (instance.tag == 'Zenith'):
-                    if self.view_angle.zenith is None:
-                        self.view_angle.zenith = np.atleast_3d(angles)
-                    else:
-                        self.view_angle.zenith = np.dstack((self.view_angle.zenith, angles))
-                elif (instance.tag == 'Azimuth'):
-                    if self.view_angle.azimuth is None:
-                        self.view_angle.azimuth = np.atleast_3d(angles)
-                    else:
-                        self.view_angle.azimuth = np.dstack((self.view_angle.azimuth, angles))
+                self.view_angle.add_raster_layer(instance.tag.lower(), angles)
             ul = self.get_upperleft()
-            self.view_angle.geotransform[0] = ul[0]
-            self.view_angle.geotransform[1] = col_step
-            self.view_angle.geotransform[2] = 0
-            self.view_angle.geotransform[3] = ul[1]
-            self.view_angle.geotransform[4] = 0
-            self.view_angle.geotransform[5] = -1*row_step
+            self.view_angle.geotransform = (ul[0], col_step, 0., ul[1], 0., -1 * row_step)
             self.view_angle.unit = 'deg'
             self.view_angle.epsg = self.epsg

@@ -3,15 +3,19 @@
 
 from osgeo import osr
 
+import typing
+
 import numpy as np
 import pandas as pd
 
 from .image_coordinate_tools import pix_centers
 from .mapping_tools import map2ll, ecef2llh
-from s2d2.checking.mapping import \
-    correct_geotransform, lat_lon_angle_check, is_crs_an_srs
+from .checking.mapping import (
+    correct_geotransform, lat_lon_angle_check, is_crs_an_srs)
+from .checking.array import (
+    are_two_arrays_equal, are_three_arrays_equal)
+from .sentinel2_grid import Sentinel2Anglegrid
 
-from s2d2.checking.array import are_two_arrays_equal, are_three_arrays_equal
 
 def wgs84_param():
     """ get paramters of the WGS84 ellipsoid
@@ -110,9 +114,6 @@ def transform_rpy_xyz2ocs(xyz, uvw, roll, pitch, yaw, xyz_time, ang_time):
     rpy = np.stack((roll, pitch, yaw), axis=1)
 
     np.einsum('...i,...i->...i', r_stack, rpy)
-
-    print('.')
-
     return roll, pitch, yaw
 
 def estimate_inclination_via_xyz_uvw(xyz, uvw):
@@ -127,23 +128,29 @@ def estimate_inclination_via_xyz_uvw(xyz, uvw):
     i += 90
     return i
 
-def calculate_correct_mapping(zn_grd, az_grd, bnd, det, grdtransform, crs,
-                              inclination, revolutions_per_day,
-                              mean_altitude=None):
+def calculate_correct_mapping(grid: Sentinel2Anglegrid,
+                              inclination:float = 98.5621,
+                              revolutions_per_day:float = 14.30824258387262,
+                              radius: typing.Optional[float] = None,
+                              mean_altitude: typing.Optional[float] = None):
     """
 
     Parameters
     ----------
-    zn_grd, az_grd : {numpy.ndarray, numpy.masked.array}, size=(k,l,h)
-        observation angles of the different detectors/bands
-    bnd : numpy.ndarray, size=(h,)
-        number of the band, corresponding to the third dimension of 'zn_grd'
-    det : numpy.ndarray, size=(h,)
-        number of the detector, corresponding to the third dimension of 'zn_grd'
-    grdtransform : tuple, size=(8,)
-        geotransform of the grid of 'zn_grd' and 'az_grd'
-    crs : osgeo.osr.SpatialReference() object
-        coordinate reference system (CRS)
+    grid : Sentinel2Anglegrid
+        with the following entries:
+            - zenith : {numpy.ndarray, numpy.masked.array}, size=(k,l,h)
+                observation angles of the different detectors/bands
+            - azimuth : {numpy.ndarray, numpy.masked.array}, size=(k,l,h)
+                observation angles of the different detectors/bands
+            - band : numpy.ndarray, size=(h,)
+                number of the band, corresponding to the third dimension of 'zenith'
+            - detector : numpy.ndarray, size=(h,)
+                number of the detector, corresponding to the third dimension of 'zenith'
+            - geotransform : tuple, size=(6,)
+                geotransform of the grid of 'zenit' and 'azimuth'
+            - crs : osgeo.osr.SpatialReference() object
+                coordinate reference system (CRS)
     inclination : float, unit=degrees
         angle of the orbital plane in relation to the equatorial plane
     revolutions_per_day : float
@@ -167,44 +174,40 @@ def calculate_correct_mapping(zn_grd, az_grd, bnd, det, grdtransform, crs,
         polynomial fitting parameters for the different bands (b)
     combos : numpy.ndarray, size=(h,2)
         combinations of band and detector pairs,
-        corresponding to the third dimension of 'zn_grd'
+        corresponding to the third dimension of 'grid.zenith'
     """
-    are_two_arrays_equal(zn_grd,az_grd)
-    are_two_arrays_equal(bnd, det)
-    grdtransform = correct_geotransform(grdtransform)
-    if not isinstance(crs, str):
-        crs = crs.ExportToWkt()
-    depth = 1 if az_grd.ndim<3 else az_grd.shape[2]
+    crs = osr.SpatialReference()
+    crs.ImportFromEPSG(grid.epsg)
 
     if is_crs_an_srs(crs):
-        x_grd, y_grd = pix_centers(grdtransform, make_grid=True)
-        (m,n) = x_grd.shape
+        x_grd, y_grd = pix_centers(grid.geotransform, rows=grid.rows, cols=grid.columns, make_grid=True)
         ll_grd = map2ll(np.stack((x_grd.ravel(), y_grd.ravel()), axis=1), crs)
-        lat_arr_grd,lon_arr_grd = ll_grd[:,0].reshape((m,n)), \
-                          ll_grd[:,1].reshape((m,n))
+        lat_arr_grd,lon_arr_grd = ll_grd[:,0].reshape((grid.columns, grid.rows)), \
+                          ll_grd[:,1].reshape((grid.columns, grid.rows))
         del ll_grd
     else:
-        lon_arr_grd, lat_arr_grd = pix_centers(grdtransform, make_grid=True)
+        lon_arr_grd, lat_arr_grd = pix_centers(grid.geotransform, rows=grid.rows, cols=grid.columns, make_grid=True)
 
     # remove NaN's, and create vectors
-    ok = np.invert(np.isnan(az_grd))
-    lat_arr_grd = np.tile(np.atleast_3d(lat_arr_grd), (1, 1, depth))
-    lon_arr_grd = np.tile(np.atleast_3d(lon_arr_grd), (1, 1, depth))
+    ok = np.invert(np.isnan(grid.azimuth))
+    lat_arr_grd = np.tile(np.atleast_3d(lat_arr_grd), (1, 1, grid.depth))
+    lon_arr_grd = np.tile(np.atleast_3d(lon_arr_grd), (1, 1, grid.depth))
     lat_arr, lon_arr = lat_arr_grd[ok], lon_arr_grd[ok]
-    az_arr, zn_arr = az_grd[ok], zn_grd[ok]
+    az_arr, zn_arr = grid.azimuth[ok], grid.zenith[ok]
 
     sat, g_x = line_of_sight(lat_arr, lon_arr, zn_arr, az_arr)
-    del lat_arr, lon_arr, lat_arr_grd, lon_arr_grd, zn_grd, az_grd
+    del lat_arr, lon_arr, lat_arr_grd, lon_arr_grd
 
-    l_time, lat, lon, radius, inclination, period = orbital_fitting(sat, g_x,
-        inclination, revolutions_per_day, mean_altitude)
+    l_time, lat, lon, radius, inclination, period = orbital_fitting(sat, g_x, inclination,
+            revolutions_per_day=revolutions_per_day, mean_altitude=mean_altitude, radius=radius)
 
     # vectorize band and detector indicators
-    Bnd, Det = np.tile(bnd,(m,n,1))[ok], np.tile(det,(m,n,1))[ok]
-    x_arr, y_arr = np.tile(np.atleast_3d(x_grd), (1,1,depth))[ok], \
-           np.tile(np.atleast_3d(y_grd), (1,1,depth))[ok]
+    Bnd, Det = (np.tile(grid.band,(grid.columns, grid.rows, 1))[ok],
+                np.tile(grid.detector,(grid.columns, grid.rows, 1))[ok])
+    x_arr, y_arr = np.tile(np.atleast_3d(x_grd), (1, 1, grid.depth))[ok], \
+           np.tile(np.atleast_3d(y_grd), (1, 1, grid.depth))[ok]
     time_para, combos = time_fitting(l_time, az_arr, zn_arr, Bnd, Det,
-                                     x_arr, y_arr, grdtransform)
+                                     x_arr, y_arr, grid.geotransform)
 
     return lat, lon, radius, inclination, period, time_para, combos
 
@@ -497,7 +500,6 @@ def orbital_fitting(sat, g_x, inclination, lat=None, lon=None, radius=None,
         inclination of the orbital plane with the equatorial plane
     period : float, unit=seconds
         time it takes to revolve one time around the Earth
-    sat_dict : dictonary
 
     Returns
     -------
@@ -512,8 +514,7 @@ def orbital_fitting(sat, g_x, inclination, lat=None, lon=None, radius=None,
         if mean_altitude is not None:
             radius = major_axis + mean_altitude
         else:
-            radius = np.cbrt(np.divide(period, 2*np.pi)**2 * \
-                             standard_gravity())
+            radius = np.cbrt(np.divide(period, 2*np.pi)**2 * standard_gravity())
 
     if (lat is None) or (lon is None):
         v_dist = np.sqrt( radius**2 +

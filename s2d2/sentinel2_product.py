@@ -10,6 +10,7 @@ from .sentinel2_tile import Sentinel2Tile
 from .sentinel2_instrument import S2A_PLATFORM_SPECS, S2B_PLATFORM_SPECS
 from .typing import Path
 
+from .mapping_tools import ecef2llh
 
 class Sentinel2Product:
     """
@@ -99,20 +100,39 @@ class Sentinel2Product:
         self._get_spacecraft_from_xmlstruct(data_take)
 
         imag_spc = get_branch(gnrl_info, 'Product_Image_Characteristics')
-        self._get_special_image_values(imag_spc)
+        self._get_special_image_values_from_xmlstruct(imag_spc)
         imag_org = get_branch(prod_info, 'Product_Organisation')
         gran_org = get_branch(imag_org, 'Granule_List')
 
         # get location where imagery is situated
-        self._get_sub_dirs(gran_org)
+        self._get_sub_dirs_from_xmlstruct(gran_org)
         self.tile.path = os.path.join(self.path, os.path.dirname(self.rel_img_dir))
         self.tile.load_metadata()
 
         self.datastrip.path = os.path.join(self.path, self.rel_ds_dir)
         self.datastrip.load_metadata()
 
-        # read_sentinel2.read_sensing_time_s2
-        self.sensing_time = ...
+        toi = self.tile.sensing_time.replace(tzinfo=None)
+        idx_row = self.datastrip.aocs_flightpath.index.get_indexer([toi], method='nearest')[0]
+        idx_col = self.datastrip.aocs_flightpath.columns.get_loc('pos')
+
+        pos = self.datastrip.aocs_flightpath.iloc[idx_row,idx_col]
+        sat_radius = np.linalg.norm(pos)
+
+        lat, lon, radius, inclination, period, time_para, combos = calculate_correct_mapping(self.tile.view_angle,
+            radius=sat_radius)
+        print('.')
+#        idx_col = self.datastrip.aocs_flightpath.columns.get_loc('orb_ang')
+#        orb_ang = self.datastrip.aocs_flightpath.iloc[idx_row,idx_col]
+
+#        idx_row = self.datastrip.attitudes_corrected.index.get_indexer([toi], method='nearest')[0]
+#        idx_col = self.datastrip.attitudes_corrected.columns.get_loc('quat')
+#        quat = self.datastrip.attitudes_corrected.iloc[idx_row, idx_col]
+
+
+#        pos = np.array(self.datastrip.aocs_flightpath.pos.tolist())
+
+#        self.datastrip.aocs_flightpath.index.get_loc(toi.replace(tzinfo=None), method='nearest')
 
 
     def _get_spacecraft_from_xmlstruct(self, data_take) -> None:
@@ -123,7 +143,7 @@ class Sentinel2Product:
         if platform is None: return
         self.spacecraft = platform
 
-    def _get_special_image_values(self, imag_spc) -> None:
+    def _get_special_image_values_from_xmlstruct(self, imag_spc) -> None:
         for spec in imag_spc:
             if spec.tag == 'Special_Values':
                 if spec[0].text == 'NODATA':
@@ -131,7 +151,7 @@ class Sentinel2Product:
                 elif spec[0].text == 'SATURATED':
                     self.satval =  int(spec[1].text)
 
-    def _get_sub_dirs(self, gran_org) -> None:
+    def _get_sub_dirs_from_xmlstruct(self, gran_org) -> None:
         # get relative path where the tile metadata is situated
         rel_path = os.path.dirname(gran_org[0][0].text)
         self.rel_img_dir = rel_path
@@ -141,12 +161,7 @@ class Sentinel2Product:
         self.rel_ds_dir = os.path.join('DATASTRIP', '_'.join(datastrip_id.split('_')[4:-1]))
 
 
-    def get_flight_bearing_from_gnss(self) -> np.ndarray:
-        # sensor_readings_sentinel2.get_flight_bearing_from_gnss_s2
-        # is the name self-explanatory?
-        pass
-
-    def calculate_correct_mapping(self):
+    def calculate_correct_orbital_mapping(self):
         # orbit_tools.calculate_correct_mapping
 
         if self.spacecraft == 'A':

@@ -69,10 +69,10 @@ class Sentinel2Datastrip:
         self.integration_time = ...
         self.sampling_time = ...
 
-    def reduce_timespan(self,
-                        t_start : np.datetime64 | None = None,
-                        t_stop : np.datetime64 | None = None) -> None:
-        pass
+#    def reduce_timespan(self,
+#                        t_start : np.datetime64 | None = None,
+#                        t_stop : np.datetime64 | None = None) -> None:
+#        pass
 
     def _get_ids_from_xmltree(self,
                               general_info: ElementTree.Element) -> None:
