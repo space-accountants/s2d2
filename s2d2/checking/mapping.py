@@ -92,11 +92,6 @@ def correct_geotransform(geoTransform):
         affine transformation coefficients.
     """
     assert isinstance(geoTransform, tuple), 'geoTransform should be a tuple'
-    assert len(geoTransform) in (6,8,), 'geoTransform not of the correct size'
-    if len(geoTransform)==6:
-        assert all(isinstance(n, float) for n in geoTransform)
-    else:
-        assert all(isinstance(n, float) for n in geoTransform[:-2])
-        assert all(isinstance(n, int) for n in geoTransform[-2:])
-        assert all(n>=0 for n in geoTransform[-2:])
+    assert len(geoTransform) == 6, 'geoTransform not of the correct size'
+    assert all(isinstance(n, float) for n in geoTransform)
     return geoTransform
