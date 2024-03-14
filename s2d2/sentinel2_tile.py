@@ -8,7 +8,7 @@ import pandas as pd
 from .checking.naming import check_mgrs_code
 from .handler.xml import get_root_of_table, get_branch, get_array_from_xml
 from .typing import Path
-from .sentinel2_instrument import CENTRAL_WAVELENGTH_MSI, dn_to_toa
+from .sentinel2_instrument import MSI_SPECIFICS, dn_to_toa
 from .sentinel2_grid import Sentinel2Anglegrid
 
 class Sentinel2Tile:

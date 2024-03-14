@@ -3,7 +3,7 @@
 
 from osgeo import osr
 
-import typing
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -131,8 +131,8 @@ def estimate_inclination_via_xyz_uvw(xyz, uvw):
 def calculate_correct_mapping(grid: Sentinel2Anglegrid,
                               inclination:float = 98.5621,
                               revolutions_per_day:float = 14.30824258387262,
-                              radius: typing.Optional[float] = None,
-                              mean_altitude: typing.Optional[float] = None):
+                              radius: Optional[float] = None,
+                              mean_altitude: Optional[float] = None):
     """
 
     Parameters
@@ -343,8 +343,8 @@ def line_of_sight(lat_arr: np.ndarray,
                   lon_arr: np.ndarray,
                   zn_arr: np.ndarray,
                   az_arr: np.ndarray,
-                  eccentricity: typing.Optional[float] = None,
-                  major_axis: typing.Optional[float] = None) -> tuple[np.ndarray, np.ndarray]:
+                  eccentricity: Optional[float] = None,
+                  major_axis: Optional[float] = None) -> tuple[np.ndarray, np.ndarray]:
     """
 
     Parameters
@@ -407,8 +407,8 @@ def line_of_sight(lat_arr: np.ndarray,
 
 def ground_vec(lat_arr: np.ndarray,
                lon_arr: np.ndarray,
-               eccentricity: typing.Optional[float] = None,
-               major_axis:typing.Optional[float] = None) -> np.ndarray:
+               eccentricity: Optional[float] = None,
+               major_axis: Optional[float] = None) -> np.ndarray:
     """ get ground coordinates in Cartesian system
 
     Parameters

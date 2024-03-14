@@ -1,13 +1,13 @@
 import os
 import numpy as np
 
-from typing import Optional
+from typing import Optional, Callable
 
 from .handler.xml import get_root_of_table, get_branch
 from .orbit_tools import calculate_correct_mapping
 from .sentinel2_datastrip import Sentinel2Datastrip
 from .sentinel2_tile import Sentinel2Tile
-from .sentinel2_instrument import S2A_PLATFORM_SPECS, S2B_PLATFORM_SPECS
+from .sentinel2_instrument import MSI_SPECIFICS
 from .typing import Path
 
 from .mapping_tools import ecef2llh
@@ -54,6 +54,7 @@ class Sentinel2Product:
         self.satval = None
         self.rel_img_dir = None
         self.rel_ds_dir = None
+        self.band_list = None
 
     def load_metadata(self) -> None:
         """ load meta-data from the product file (MTD_TL.xml)
@@ -112,6 +113,53 @@ class Sentinel2Product:
         self.datastrip.path = os.path.join(self.path, self.rel_ds_dir)
         self.datastrip.load_metadata()
 
+    def specify_bands_of_interest(self,
+                                  query: Optional[str] = None,
+                                  subject: Optional[str] = None,
+                                  condition: Optional[Callable] = None,
+                                  selection: Optional[list] = None) -> None:
+        """
+        Parameters
+        ----------
+        subject : str
+            the characteristic to base the selection on. The following specific information about the MSI
+            instrument that is onboard Sentinel-2 can be selected:
+
+                * "center_wavelength", unit=µm : central wavelength of the band
+                * "full_width_half_max", unit=µm : extent of the spectral sensativity
+                * "resolution", unit=m : spatial resolution of a pixel
+                * "along_pixel_size", unit=µm : physical size of the sensor
+                * "across_pixel_size", unit=µm : size of the photosensative sensor
+                * "crossdetector_parallax", unit=degress : in along-track direction
+                * "common_name" : general name of the band, if applicable
+                * "bandid" : number for identification in the meta data
+
+        """
+        if query is not None:
+            self.band_list = MSI_SPECIFICS.query(query).get('bandid')
+            return
+
+        if subject is None:
+            self.band_list = MSI_SPECIFICS.get('bandid')
+            return
+
+        assert subject in MSI_SPECIFICS.keys(), \
+            f'subject does not seem to be present, please provide one of the following: {list(MSI_SPECIFICS.keys())}'
+
+        bid = MSI_SPECIFICS.columns.get_loc('bandid')
+        coi = MSI_SPECIFICS.get(subject)
+        if selection is None:
+            idx = condition(coi)
+            self.band_list = MSI_SPECIFICS.iloc[idx].get('bandid')
+        else:
+            self.band_list = MSI_SPECIFICS.loc[coi.isin(selection)].get('bandid')
+
+
+    def update_bands_metadata(self):
+        # read detector mask
+        
+
+    def prepare_viewing(self): #todo: not sure yet where to place this or how to name it
         toi = self.tile.sensing_time.replace(tzinfo=None)
         idx_row = self.datastrip.aocs_flightpath.index.get_indexer([toi], method='nearest')[0]
         idx_col = self.datastrip.aocs_flightpath.columns.get_loc('pos')
@@ -121,19 +169,8 @@ class Sentinel2Product:
 
         lat, lon, radius, inclination, period, time_para, combos = calculate_correct_mapping(self.tile.view_angle,
             radius=sat_radius)
+
         print('.')
-#        idx_col = self.datastrip.aocs_flightpath.columns.get_loc('orb_ang')
-#        orb_ang = self.datastrip.aocs_flightpath.iloc[idx_row,idx_col]
-
-#        idx_row = self.datastrip.attitudes_corrected.index.get_indexer([toi], method='nearest')[0]
-#        idx_col = self.datastrip.attitudes_corrected.columns.get_loc('quat')
-#        quat = self.datastrip.attitudes_corrected.iloc[idx_row, idx_col]
-
-
-#        pos = np.array(self.datastrip.aocs_flightpath.pos.tolist())
-
-#        self.datastrip.aocs_flightpath.index.get_loc(toi.replace(tzinfo=None), method='nearest')
-
 
     def _get_spacecraft_from_xmlstruct(self, data_take) -> None:
         platform = None
