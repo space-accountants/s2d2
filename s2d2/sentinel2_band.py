@@ -4,6 +4,9 @@ from PIL import Image, ImageDraw
 import os
 import numpy as np
 
+from osgeo import gdal
+
+from typing import Optional
 from .typing import Path
 
 from .image_coordinate_tools import map2pix
@@ -30,7 +33,7 @@ class Sentinel2Band():
         self.rows = rows
         self.columns = columns
 
-        self.units = None
+        self.unit = None
         self.digitalnumbers = None
         self.detector = None
         self.zenith = None
@@ -40,7 +43,7 @@ class Sentinel2Band():
     def read_detector_gml(self, path: Path):
         det_msk = np.zeros((self.rows, self.columns), dtype='int8')
 
-        root = get_root_of_table(self.path, fname=f'MSK_DETFOO_{self.index}.gml')
+        root = get_root_of_table(path, fname=f'MSK_DETFOO_{self.index}.gml')
         mask_members = get_branch(root, 'maskMembers')
         for k in range(len(mask_members)):
             pos_arr, det_num = get_xy_polygon_from_gml(mask_members, k)
@@ -56,8 +59,19 @@ class Sentinel2Band():
             det_msk = np.maximum(det_msk, msk)
         setattr(self, 'detector', det_msk)
 
-    def read_band(self, path: Path):
+    def read_band(self,
+                  path: Path,
+                  fname: Optional[str]):
+        #todo: what to do with full integration...
+        img_path = os.path.join(path, fname)
+        img = gdal.Open(img_path)
+        assert img is not None, ('could not open dataset ' + fname)
 
+        band = np.array(img.GetRasterBand(1).ReadAsArray())
+        no_dat = img.GetRasterBand(1).GetNoDataValue()
+        np.putmask(band, band == no_dat, 0)
+
+        setattr(self, 'digitalnumbers', band)
         setattr(self, 'unit', 'DN')
 
     def dn_to_toa(self):
