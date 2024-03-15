@@ -10,6 +10,7 @@ from .handler.xml import get_root_of_table, get_branch, get_array_from_xml
 from .typing import Path
 from .sentinel2_instrument import MSI_SPECIFICS, dn_to_toa
 from .sentinel2_grid import Sentinel2Anglegrid
+from .eo_imagery import bandCollection
 
 class Sentinel2Tile:
     def __init__(self, path: Path) -> None:
@@ -34,7 +35,7 @@ class Sentinel2Tile:
         self.sun_azimuth_mean = None
         self.sun_zenith_mean = None
 
-        self.sensing_time = None
+        self.bands = bandCollection()
 
     def __str__(self):
         return f"{self.path}({self.epsg})"
@@ -85,6 +86,18 @@ class Sentinel2Tile:
         self._get_mean_sunangles_from_xmltree(tile_ang)
         self._get_sunangles_from_xmltree(tile_ang)
         self._get_viewangles_from_xmltree(tile_ang)
+
+    def update_bands_metadata(self,
+                             band_list: pd.Series) -> None:
+
+        # update rows - columns
+        gsd_in = MSI_SPECIFICS.iloc[band_list].get('gsd').unique()
+        self.rows = {k: v for k, v in self.rows.items() if np.in1d(k, gsd_in)}
+        self.columns = {k: v for k, v in self.columns.items() if np.in1d(k, gsd_in)}
+
+        for stack_idx, band_name in enumerate(band_list.index):
+            asd
+        print('.')
 
     def get_upperleft(self) -> list[float]:
         return list(self.geotransforms.values())[0][slice(0, -1, 3)]

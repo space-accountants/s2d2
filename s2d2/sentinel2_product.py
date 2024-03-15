@@ -146,7 +146,6 @@ class Sentinel2Product:
         assert subject in MSI_SPECIFICS.keys(), \
             f'subject does not seem to be present, please provide one of the following: {list(MSI_SPECIFICS.keys())}'
 
-        bid = MSI_SPECIFICS.columns.get_loc('bandid')
         coi = MSI_SPECIFICS.get(subject)
         if selection is None:
             idx = condition(coi)
@@ -156,8 +155,9 @@ class Sentinel2Product:
 
 
     def update_bands_metadata(self):
+        self.tile.update_bands_metadata(self.band_list)
         # read detector mask
-        
+
 
     def prepare_viewing(self): #todo: not sure yet where to place this or how to name it
         toi = self.tile.sensing_time.replace(tzinfo=None)
