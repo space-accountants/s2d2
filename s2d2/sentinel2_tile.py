@@ -9,6 +9,7 @@ from .checking.naming import check_mgrs_code
 from .handler.xml import get_root_of_table, get_branch, get_array_from_xml
 from .typing import Path
 from .sentinel2_instrument import MSI_SPECIFICS, dn_to_toa
+from .sentinel2_band import Sentinel2Band
 from .sentinel2_grid import Sentinel2Anglegrid
 from .eo_imagery import bandCollection
 
@@ -94,10 +95,17 @@ class Sentinel2Tile:
         gsd_in = MSI_SPECIFICS.iloc[band_list].get('gsd').unique()
         self.rows = {k: v for k, v in self.rows.items() if np.in1d(k, gsd_in)}
         self.columns = {k: v for k, v in self.columns.items() if np.in1d(k, gsd_in)}
+        self.geotransforms = {k: v for k, v in self.geotransforms.items() if np.in1d(k, gsd_in)}
 
-        for stack_idx, band_name in enumerate(band_list.index):
-            asd
-        print('.')
+        for band_name, stack_idx in band_list.items():
+            gsd_oi = MSI_SPECIFICS.iloc[stack_idx].get('gsd')
+            band = Sentinel2Band(band_name,
+                                 self.epsg,
+                                 self.geotransforms[gsd_oi],
+                                 self.rows[gsd_oi],
+                                 self.columns[gsd_oi])
+            self.bands[band_name] = band
+
 
     def get_upperleft(self) -> list[float]:
         return list(self.geotransforms.values())[0][slice(0, -1, 3)]
