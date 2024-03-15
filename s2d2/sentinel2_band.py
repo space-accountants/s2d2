@@ -6,7 +6,9 @@ import numpy as np
 
 from .typing import Path
 
+from .image_coordinate_tools import map2pix
 from .handler.xml import get_root_of_table, get_branch
+from .handler.gml import get_xy_polygon_from_gml
 
 from .sentinel2_instrument import MSI_SPECIFICS, dn_to_toa
 
@@ -41,7 +43,7 @@ class Sentinel2Band():
         root = get_root_of_table(self.path, fname=f'MSK_DETFOO_{self.index}.gml')
         mask_members = get_branch(root, 'maskMembers')
         for k in range(len(mask_members)):
-            pos_arr, det_num = get_xy_poly_from_gml(mask_members, k)
+            pos_arr, det_num = get_xy_polygon_from_gml(mask_members, k)
 
             # transform to image coordinates
             i_arr, j_arr = map2pix(self.geotransform, pos_arr[:, 0], pos_arr[:, 1])

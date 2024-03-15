@@ -1,6 +1,7 @@
 import numpy as np
 
-def get_xy_poly_from_gml(gml_struct,idx):
+# todo: robustify
+def get_xy_polygon_from_gml(gml_struct, idx: int) -> tuple[np.ndarray, int]:
     # get detector number from meta-data
     det_id = gml_struct[idx].attrib
     det_id = list(det_id.items())[0][1].split('-')[2]

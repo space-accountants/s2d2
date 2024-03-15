@@ -175,9 +175,27 @@ d = {
 
 MSI_SPECIFICS = pd.DataFrame(d)
 
-def dn_to_toa():
-    # read_sentinel2.dn2toa_s2
-    pass
+def dn_to_toa(img_dn):
+    """
+    convert the digital numbers of Sentinel-2 to top of atmosphere (TOA), see
+    for more details [wwwS2L1C]_.
+
+    Parameters
+    ----------
+    img_dn : numpy.ndarray, dim={2,3}, size=(m,n)
+        grid with intensities
+
+    Returns
+    -------
+    numpy.ndarray, dim={2,3}, size=(m,n)
+        grid with top of atmosphere reflectances
+
+    Notes
+    -----
+    .. [wwwS2L1C] https://sentinel.esa.int/web/sentinel/technical-guides/sentinel-2-msi/level-1c/algorithm
+    """
+    img_toa = np.divide(img_dn.astype('float'), 1E4)
+    return img_toa
 
 
 
