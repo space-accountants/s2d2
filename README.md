@@ -37,6 +37,52 @@ Each .
 
 ## Datamodel
 
+```mermaid
+ classDiagram
+	Sentinel2Datastrip "1" --> "1..*" Sentinel2Tile
+    class Sentinel2Product
+      Sentinel2Product : path
+        Sentinel2Product --|> Sentinel2Datastrip : rel_ds_dir
+        Sentinel2Product --|> Sentinel2Tile : rel_img_dir
+	  Sentinel2Product : sensing_time
+	  Sentinel2Product : spacecraft 
+	  Sentinel2Product : nanval 
+	  Sentinel2Product : satval  
+	  Sentinel2Product : rel_img_dir  
+	  Sentinel2Product : rel_ds_dir  
+	  Sentinel2Product : band_list     
+    class Sentinel2Datastrip
+      Sentinel2Datastrip : path
+      Sentinel2Datastrip : spacecraft 
+      Sentinel2Datastrip : datatake_id  
+      Sentinel2Datastrip : orbit  
+      Sentinel2Datastrip : orbit_absolute  
+      Sentinel2Datastrip : orbit_counter     
+      Sentinel2Datastrip : tile_list  
+      Sentinel2Datastrip : gps_flightpath  
+      Sentinel2Datastrip : attitudes_corrected  
+      Sentinel2Datastrip : attitudes_raw  
+      Sentinel2Datastrip : detector_time  
+      Sentinel2Datastrip : sat_time  
+      Sentinel2Datastrip : sat_ang  
+      Sentinel2Datastrip : sat_quat  
+      Sentinel2Datastrip : sat_str  
+      Sentinel2Datastrip : integration_time  
+      Sentinel2Datastrip : sampling_time  
+    class Sentinel2Tile
+      Sentinel2Tile : path
+      Sentinel2Tile : tile_id ~int~  
+      Sentinel2Tile : mgrs_id ~int~
+      Sentinel2Tile : datastrip_id 
+      Sentinel2Tile : resolution  List~float~
+      Sentinel2Tile : rows
+      Sentinel2Tile : columns
+      Sentinel2Tile : epsg
+      Sentinel2Tile : geotransforms
+      Sentinel2Tile : sun_azimuth_mean
+      Sentinel2Tile : sun_zenith_mean  
+```
+
 ## Installation
 
 Download and access the package folder using `git`:
