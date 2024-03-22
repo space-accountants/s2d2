@@ -57,12 +57,12 @@ class Sentinel2Band():
                                         outline=det_num, fill=det_num)
             msk = np.array(msk)
             det_msk = np.maximum(det_msk, msk)
-        setattr(self, 'detector', det_msk)
+        self.detector = det_msk
 
     def read_band(self,
                   path: Path,
                   fname: Optional[str]):
-        #todo: what to do with full integration...
+        # todo: what to do with full integration...
         img_path = os.path.join(path, fname)
         img = gdal.Open(img_path)
         assert img is not None, ('could not open dataset ' + fname)
@@ -71,14 +71,13 @@ class Sentinel2Band():
         no_dat = img.GetRasterBand(1).GetNoDataValue()
         np.putmask(band, band == no_dat, 0)
 
-        setattr(self, 'digitalnumbers', band)
-        setattr(self, 'unit', 'DN')
+        self.digitalnumbers = band
+        self.unit = 'DN'
 
     def dn_to_toa(self):
-        if getattr(self, 'unit') == 'TOA': return
-        assert(getattr(self, 'unit') == 'DN'), 'input should be digital numbers'
+        if self.unit == 'TOA':
+            return
+        assert (self.unit == 'DN'), 'input should be digital numbers'
 
-        TOA = dn_to_toa(getattr(self, 'digitalnumbers'))
-
-        setattr(self, 'digitalnumbers', TOA)
-        setattr(self, 'unit', 'TOA')
+        self.digitalnumbers = dn_to_toa(self.digitalnumbers)
+        self.unit = 'TOA'
