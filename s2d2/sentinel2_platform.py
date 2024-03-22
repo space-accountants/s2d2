@@ -105,7 +105,7 @@ References
             systems, 2021.
 
 """
-S2_JITTER_FREQUENCIES = pd.DataFrame.from_dict({
+S2_JITTER_FREQUENCIES = pd.DataFrame({
     'imperfection': [1, 2, 3, 4, 5, 6],
     'angular rates': [13616., 184., 197.3, 14800., 197.3, 185.],
     'gear pair': [(2, 3), (2, 3), (2, 3), (3, 4), (3, 4), (3, 4)],
