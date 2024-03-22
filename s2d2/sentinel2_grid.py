@@ -3,6 +3,7 @@ import numpy as np
 from .checking.array import are_two_arrays_equal
 from .checking.mapping import correct_geotransform
 
+
 class Sentinel2Anglegrid:
     def __init__(self) -> None:
         # mapping specifics
@@ -29,13 +30,12 @@ class Sentinel2Anglegrid:
         grid = getattr(self, angle_type)
         if grid is None:
             grid = np.atleast_3d(angles)
-            setattr(self, 'rows', grid.shape[0])
-            setattr(self, 'columns', grid.shape[1])
+            self.rows = grid.shape[0]
+            self.columns = grid.shape[1]
         else:
             grid = np.dstack((grid, angles))
-        setattr(self, 'depth', grid.shape[2])
+        self.depth = grid.shape[2]
         setattr(self, angle_type, grid)
-
 
     def check_consistency(self) -> None:
         are_two_arrays_equal(self.zenith, self.azimuth)
@@ -45,4 +45,3 @@ class Sentinel2Anglegrid:
         assert self.rows == self.zenith.shape[0], 'dimensions are not consistent with data'
         assert self.columns == self.zenith.shape[1], 'dimensions are not consistent with data'
         assert self.depth == self.zenith.shape[2], 'dimensions are not consistent with data'
-
