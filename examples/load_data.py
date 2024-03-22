@@ -3,6 +3,8 @@ import os
 from s2d2.sentinel2_product import Sentinel2Product
 from s2d2.sentinel2_band import Sentinel2Band
 
+from s2d2.utils import get_bands_of_interest
+
 dat_path = 'data/S2A_MSIL1C_20170225T155221_N0204_R054_T18TWL_20170225T155545.SAFE'
 gml_path = '/home/basal/parcels/s2d2/data/S2A_MSIL1C_20170225T155221_N0204_R054_T18TWL_20170225T155545.SAFE/GRANULE/L1C_T18TWL_A008774_20170225T155545/QI_DATA'
 img_path = '/home/basal/parcels/s2d2/data/S2A_MSIL1C_20170225T155221_N0204_R054_T18TWL_20170225T155545.SAFE/GRANULE/L1C_T18TWL_A008774_20170225T155545/IMG_DATA'
@@ -14,8 +16,9 @@ img_path = '/home/basal/parcels/s2d2/data/S2A_MSIL1C_20170225T155221_N0204_R054_
 
 s2d2 = Sentinel2Product(dat_path)
 s2d2.load_metadata()
-s2d2.specify_bands_of_interest(query='gsd==10')
-s2d2.update_bands_metadata()
+
+band_list = get_bands_of_interest(query='gsd==10')
+
 
 print('.')
 

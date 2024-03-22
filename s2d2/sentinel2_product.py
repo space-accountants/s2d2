@@ -1,24 +1,22 @@
 import os
 import numpy as np
 
-from typing import Optional, Callable
+from typing import Optional
 
 from .handler.xml import get_root_of_table, get_branch
-from .orbit_tools import calculate_correct_mapping
 from .sentinel2_datastrip import Sentinel2Datastrip
 from .sentinel2_tile import Sentinel2Tile
-from .sentinel2_instrument import MSI_SPECIFICS
 from .typing import Path
 
-from .mapping_tools import ecef2llh
 
 class Sentinel2Product:
     """
 
     Notes
     -----
-    For Sentinel-2 Level 1C the metadata is scattered over the files and folders.
-    In order to make this organization more understandable, the following visualization is made:
+    For Sentinel-2 Level 1C the metadata is scattered over the files and
+    folders. In order to make this organization more understandable, the
+    following visualization is made:
 
     .. code-block:: text
 
@@ -57,7 +55,8 @@ class Sentinel2Product:
         self.band_list = None
 
     def load_metadata(self) -> None:
-        """ load meta-data from the product file (MTD_TL.xml)
+        """
+        Load meta-data from the product file (MTD_MSIL1C.xml)
 
         Notes
         -----
@@ -108,56 +107,12 @@ class Sentinel2Product:
         # get location where imagery is situated
         self._get_sub_dirs_from_xmlstruct(gran_org)
         self.tile.path = os.path.join(self.path, os.path.dirname(self.rel_img_dir))
-        self.tile.load_metadata()
-
         self.datastrip.path = os.path.join(self.path, self.rel_ds_dir)
+
+    def load_all_metadata(self):
+        self.load_metadata()
+        self.tile.load_metadata()
         self.datastrip.load_metadata()
-
-    def specify_bands_of_interest(self,
-                                  query: Optional[str] = None,
-                                  subject: Optional[str] = None,
-                                  condition: Optional[Callable] = None,
-                                  selection: Optional[list] = None) -> None:
-        """
-        Parameters
-        ----------
-        subject : str
-            the characteristic to base the selection on. The following specific information about the MSI
-            instrument that is onboard Sentinel-2 can be selected:
-
-                * "center_wavelength", unit=µm : central wavelength of the band
-                * "full_width_half_max", unit=µm : extent of the spectral sensativity
-                * "resolution", unit=m : spatial resolution of a pixel
-                * "along_pixel_size", unit=µm : physical size of the sensor
-                * "across_pixel_size", unit=µm : size of the photosensative sensor
-                * "crossdetector_parallax", unit=degress : in along-track direction
-                * "common_name" : general name of the band, if applicable
-                * "bandid" : number for identification in the meta data
-
-        """
-        if query is not None:
-            self.band_list = MSI_SPECIFICS.query(query).get('bandid')
-            return
-
-        if subject is None:
-            self.band_list = MSI_SPECIFICS.get('bandid')
-            return
-
-        assert subject in MSI_SPECIFICS.keys(), \
-            f'subject does not seem to be present, please provide one of the following: {list(MSI_SPECIFICS.keys())}'
-
-        coi = MSI_SPECIFICS.get(subject)
-        if selection is None:
-            idx = condition(coi)
-            self.band_list = MSI_SPECIFICS.iloc[idx].get('bandid')
-        else:
-            self.band_list = MSI_SPECIFICS.loc[coi.isin(selection)].get('bandid')
-
-
-    def update_bands_metadata(self):
-        self.tile.update_bands_metadata(self.band_list)
-        # read detector mask
-
 
     def prepare_viewing(self): #todo: not sure yet where to place this or how to name it
         toi = self.tile.sensing_time.replace(tzinfo=None)
@@ -167,10 +122,10 @@ class Sentinel2Product:
         pos = self.datastrip.aocs_flightpath.iloc[idx_row,idx_col]
         sat_radius = np.linalg.norm(pos)
 
-        lat, lon, radius, inclination, period, time_para, combos = calculate_correct_mapping(self.tile.view_angle,
-            radius=sat_radius)
+        # lat, lon, radius, inclination, period, time_para, combos = calculate_correct_mapping(self.tile.view_angle,
+        #     radius=sat_radius)
 
-        print('.')
+        # print('.')
 
     def _get_spacecraft_from_xmlstruct(self, data_take) -> None:
         platform = None
@@ -186,7 +141,7 @@ class Sentinel2Product:
                 if spec[0].text == 'NODATA':
                     self.nanval = int(spec[1].text)
                 elif spec[0].text == 'SATURATED':
-                    self.satval =  int(spec[1].text)
+                    self.satval = int(spec[1].text)
 
     def _get_sub_dirs_from_xmlstruct(self, gran_org) -> None:
         # get relative path where the tile metadata is situated
@@ -196,20 +151,3 @@ class Sentinel2Product:
         # get relative path where the datastrip metadata is situated
         datastrip_id = gran_org[0].attrib['datastripIdentifier']
         self.rel_ds_dir = os.path.join('DATASTRIP', '_'.join(datastrip_id.split('_')[4:-1]))
-
-
-    def calculate_correct_orbital_mapping(self):
-        # orbit_tools.calculate_correct_mapping
-
-        if self.spacecraft == 'A':
-            inclination = S2A_PLATFORM_SPECS['inclination']
-            revolutions_per_day = S2A_PLATFORM_SPECS['revolutions_per_day']
-        else:
-            inclination = S2B_PLATFORM_SPECS['inclination']
-            revolutions_per_day = S2B_PLATFORM_SPECS['revolutions_per_day']
-
-        lat, lon, radius, inclination, period, time_para, combos = \
-            calculate_correct_mapping(zn_grd, az_grd, bnd, det, grdtransform, crs,
-                                  inclination, revolutions_per_day)
-
-        pass
