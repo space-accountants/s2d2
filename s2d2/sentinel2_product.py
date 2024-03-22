@@ -4,7 +4,6 @@ import numpy as np
 from typing import Optional
 
 from .handler.xml import get_root_of_table, get_branch
-from .orbit_tools import calculate_correct_mapping
 from .sentinel2_datastrip import Sentinel2Datastrip
 from .sentinel2_tile import Sentinel2Tile
 from .typing import Path
