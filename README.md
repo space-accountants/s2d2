@@ -40,10 +40,14 @@ Each .
 ```mermaid
  classDiagram
 	Sentinel2Datastrip "1" --> "1..*" Sentinel2Tile
-    class Sentinel2Product
+	Sentinel2Product --|> Sentinel2Datastrip
+	Sentinel2Product --|> Sentinel2Tile
+	Sentinel2Tile --|> Sentinel2Anglegrid
+	Sentinel2Tile --|> bandCollection
+	bandCollection "1" --|> "1..*" Sentinel2Band
+	
+	class Sentinel2Product
       Sentinel2Product : path
-        Sentinel2Product --|> Sentinel2Datastrip : rel_ds_dir
-        Sentinel2Product --|> Sentinel2Tile : rel_img_dir
 	  Sentinel2Product : sensing_time
 	  Sentinel2Product : spacecraft 
 	  Sentinel2Product : nanval 
@@ -71,16 +75,40 @@ Each .
       Sentinel2Datastrip : sampling_time  
     class Sentinel2Tile
       Sentinel2Tile : path
-      Sentinel2Tile : tile_id ~int~  
-      Sentinel2Tile : mgrs_id ~int~
+      Sentinel2Tile : tile_id
+      Sentinel2Tile : mgrs_id
       Sentinel2Tile : datastrip_id 
-      Sentinel2Tile : resolution  List~float~
+      Sentinel2Tile : resolution
       Sentinel2Tile : rows
       Sentinel2Tile : columns
       Sentinel2Tile : epsg
       Sentinel2Tile : geotransforms
       Sentinel2Tile : sun_azimuth_mean
       Sentinel2Tile : sun_zenith_mean  
+    class Sentinel2Anglegrid
+      Sentinel2Anglegrid : epsg  
+      Sentinel2Anglegrid : unit  
+      Sentinel2Anglegrid : geotransform
+      Sentinel2Anglegrid : zenith
+      Sentinel2Anglegrid : azimuth  
+      Sentinel2Anglegrid : band
+      Sentinel2Anglegrid : detector
+      Sentinel2Anglegrid : rows 
+      Sentinel2Anglegrid : columns 
+      Sentinel2Anglegrid : depth
+	class bandCollection
+	class Sentinel2Band
+	  Sentinel2Band : index  
+	  Sentinel2Band : epsg
+	  Sentinel2Band : geotransform
+	  Sentinel2Band : rows 
+	  Sentinel2Band : columns 
+	  Sentinel2Band : unit
+	  Sentinel2Band : digitalnumbers 
+	  Sentinel2Band : detector 
+	  Sentinel2Band : zenith  
+	  Sentinel2Band : azimuth  
+	  Sentinel2Band : timing
 ```
 
 ## Installation
