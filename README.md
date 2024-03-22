@@ -46,7 +46,8 @@ Each .
 	Sentinel2Tile "1" <|-- "1..*" Sentinel2Anglegrid
 	Sentinel2Tile "1" -- "1" bandCollection
 	bandCollection "1" -- "1..*" Sentinel2Band
-	
+	Sentinel2Band "1" <|-- "1..*" Sentinel2Anglegrid
+		
 	class Sentinel2Product
 	link Sentinel2Product "http://www.space-accountants.eu" "link towards readthedocs"
       Sentinel2Product : path
