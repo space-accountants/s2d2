@@ -39,14 +39,16 @@ Each .
 
 ```mermaid
  classDiagram
-	Sentinel2Datastrip "1" --> "1..*" Sentinel2Tile
-	Sentinel2Product --|> Sentinel2Datastrip
-	Sentinel2Product --|> Sentinel2Tile
-	Sentinel2Tile --|> Sentinel2Anglegrid
-	Sentinel2Tile --|> bandCollection
-	bandCollection "1" --|> "1..*" Sentinel2Band
+	direction LR
+	Sentinel2Product "1" <|-- "1" Sentinel2Datastrip
+	Sentinel2Product "1" <|-- "1" Sentinel2Tile
+	Sentinel2Datastrip "1" -- "1..*" Sentinel2Tile
+	Sentinel2Tile "1" <|-- "1..*" Sentinel2Anglegrid
+	Sentinel2Tile "1" -- "1" bandCollection
+	bandCollection "1" -- "1..*" Sentinel2Band
 	
 	class Sentinel2Product
+	link Sentinel2Product "http://www.space-accountants.eu" "link towards readthedocs"
       Sentinel2Product : path
 	  Sentinel2Product : sensing_time
 	  Sentinel2Product : spacecraft 
