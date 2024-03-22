@@ -11,6 +11,7 @@ from .typing import Path
 from .sentinel2_instrument import MSI_SPECIFICS, dn_to_toa
 from .sentinel2_band import Sentinel2Band
 from .sentinel2_grid import Sentinel2Anglegrid
+from .sentinel2_platform import Sentinel2Platform
 from .eo_imagery import bandCollection
 
 class Sentinel2Tile:
@@ -88,24 +89,16 @@ class Sentinel2Tile:
         self._get_sunangles_from_xmltree(tile_ang)
         self._get_viewangles_from_xmltree(tile_ang)
 
-    def update_bands_metadata(self,
-                             band_list: pd.Series) -> None:
+        self._update_bands_metadata()
 
-        # update rows - columns
-        gsd_in = MSI_SPECIFICS.iloc[band_list].get('gsd').unique()
-        self.rows = {k: v for k, v in self.rows.items() if np.in1d(k, gsd_in)}
-        self.columns = {k: v for k, v in self.columns.items() if np.in1d(k, gsd_in)}
-        self.geotransforms = {k: v for k, v in self.geotransforms.items() if np.in1d(k, gsd_in)}
-
-        for band_name, stack_idx in band_list.items():
-            gsd_oi = MSI_SPECIFICS.iloc[stack_idx].get('gsd')
+    def _update_bands_metadata(self) -> None:
+        for band_name, specs in MSI_SPECIFICS.iterrows():
             band = Sentinel2Band(band_name,
                                  self.epsg,
-                                 self.geotransforms[gsd_oi],
-                                 self.rows[gsd_oi],
-                                 self.columns[gsd_oi])
+                                 self.geotransforms[specs.gsd],
+                                 self.rows[specs.gsd],
+                                 self.columns[specs.gsd])
             self.bands[band_name] = band
-
 
     def get_upperleft(self) -> list[float]:
         return list(self.geotransforms.values())[0][slice(0, -1, 3)]
@@ -222,8 +215,19 @@ class Sentinel2Tile:
         crs.ImportFromEPSG(epsg_code)
         return crs
 
+    def calculate_correct_orbital_mapping(self):
+        # orbit_tools.calculate_correct_mapping
+        platform = Sentinel2Platform(self.tile_id[2])  # 'A' or 'B'
+
+        lat, lon, radius, inclination, period, time_para, combos = \
+            calculate_correct_mapping(zn_grd, az_grd, bnd, det, grdtransform, crs,
+                                      platform.inclination,
+                                      platform.revolutions_per_day)
+
+        pass
+
     def _get_tile_id_from_xmltree(self,
-                                 general_info: ElementTree.Element) -> None:
+                                  general_info: ElementTree.Element) -> None:
         for field in general_info:
             if field.tag == 'TILE_ID':
                 self.tile_id = field.text
@@ -239,7 +243,8 @@ class Sentinel2Tile:
         for field in geocoding:
             if field.tag == 'HORIZONTAL_CS_CODE':
                 epsg = int(field.text.split(':')[1])
-        if epsg is None: return
+        if epsg is None:
+            return
         crs = osr.SpatialReference()
         crs.ImportFromEPSG(epsg)
         self.epsg = epsg
