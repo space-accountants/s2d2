@@ -152,7 +152,8 @@ sensor_array = {
     "B11": 'SWIR',
     "B12": 'SWIR',
 }
-d = {
+
+MSI_SPECIFICS = pd.DataFrame({
     "center_wavelength":
         pd.Series(center_wavelength, dtype=np.dtype('float')),
     "full_width_half_max":
@@ -171,9 +172,8 @@ d = {
         pd.Series(bandid, dtype=np.dtype('int64')),
     "crossdetector_parallax":
         pd.Series(crossdetector_parallax, dtype=np.dtype('float'))
-}
+})
 
-MSI_SPECIFICS = pd.DataFrame(d)
 
 def dn_to_toa(img_dn):
     """
@@ -196,6 +196,3 @@ def dn_to_toa(img_dn):
     """
     img_toa = np.divide(img_dn.astype('float'), 1E4)
     return img_toa
-
-
-

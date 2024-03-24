@@ -1,72 +1,120 @@
-import pandas as pd
-import numpy as np
-
+from dataclasses import dataclass
 from datetime import date
 
+import numpy as np
+import pandas as pd
+
+
+@dataclass
+class S2PlatformSpecs():
+    cospar_id: str
+    norad_id: int
+    esoc: int
+    launch_date: date
+    drag: np.ndarray
+    # mass ?
+
+
 S2_PLATFORM_SPECS = {
-        'COSPAR': ['2015-028A', '2017-013A'],
-        'NORAD': [40697, 42063],
-        'ESOC': [266, 267],
-        'launch_date': [date(2015, 6, 23), date(2017, 3, 7)],
-        'J': [ [[558, 30, -30], [30, 819, 30], [-30, 30, 1055]], [[558, 30, -30], [30, 819, 30], [-30, 30, 1055]]]
+    'A': S2PlatformSpecs(
+        '2015-028A',
+        40697,
+        266,
+        date(2015, 6, 23),
+        np.array(
+            [
+                [558, 30, -30],
+                [30, 819, 30],
+                [-30, 30, 1055]
+            ],
+            dtype=int
+        )
+    ),
+    'B': S2PlatformSpecs(
+        '2017-013A',
+        42063,
+        267,
+        date(2017, 3, 7),
+        np.array(
+            [
+                [558, 30, -30],
+                [30, 819, 30],
+                [-30, 30, 1055]
+            ],
+            dtype=int
+        )
+    ),
 }
+
+
+@dataclass
+class S2GNSSSpecs():
+    x: float
+    y: float
+    z: float
+    orientation: np.ndarray
+
+    def dimensions(self) -> tuple[float]:
+        return self.x, self.y, self.z
+
 
 S2_GNSS_SPECS = {
-    'X': [232., 232.],
-    'Y': [227.5, -72.5],
-    'Z': [-810., -810.],
-    'R': [[[-0.966, 0., -0.259], [0., 1., 0.], [0.259, 0., -0.966]],
-         [[-0.966, 0., -0.259], [0., 1., 0.], [0.259, 0., -0.966]]]
+    'GPS-A': S2GNSSSpecs(
+        232.,
+        227.5,
+        -810.,
+        np.array([
+            [-0.966, 0., -0.259],
+            [0., 1., 0.],
+            [0.259, 0., -0.966]
+        ]),
+    ),
+    'GPS-B': S2GNSSSpecs(
+        232.,
+        -72.5,
+        -810.,
+        np.array([
+            [-0.966, 0., -0.259],
+            [0., 1., 0.],
+            [0.259, 0., -0.966]
+        ]),
+    )
 }
 
-class Sentinel2Platform:
-    def __init__(self, spacecraft: str) -> None:
-        df = pd.DataFrame.from_dict(data=S2_PLATFORM_SPECS, orient='index', columns=['A', 'B'])
-        assert spacecraft in df.keys(), f'please provide correct spacecraft id, that is: {list(df.columns.values)}'
 
-        self.id_norad = df[spacecraft]['NORAD']
-        self.id_cospar = df[spacecraft]['COSPAR']
-        self.id_esoc = df[spacecraft]['ESOC']
+SOLARPANEL = {
+    'dimensions': None,
+    'orientation': None,
+    'angularsuntrackrate': 0.06,  # [deg / sec]
+    'angularrewindrate': 0.205,  # [deg / sec]
+    'angularrange': 239,  # [deg]
+}
 
-        self.mass = None
-        self.drag = df[spacecraft]['J']
 
-class solarpanel:
-    def __init__(self) -> None:
-        self.dimensions = None
-        self.orientation = None
-        self.angularsuntrackrate = 0.06 # [deg / sec]
-        self.angularrewindrate = 0.205 # [deg / sec]
-        self.angularrange = 239 # [deg]
+"""
+Sentinel-2 jitter frequencies
 
-class gnss:
-    def __init__(self, id: str) -> None:
-        df = pd.DataFrame.from_dict(S2_GNSS_SPECS, orient="index", columns=['GPS-A', 'GPS-B'])
-        self.dimensions = [df[id]['X'], df[id]['Y'], df[id]['Z']]
-        self.orientation = df[id]['R']
+References
+----------
+.. [Mi21] Mingione, "Solar array drive mechanism disturbance estimation:
+            a robust approach applied to Sentinel-2 mission", Msc thesis of
+            Politecnico di Milano, April 2021.
+.. [Al21] Alazard et al., "Characterization of SADM induced disturbances
+            and their effects on spacecraft pointing errors" 11th
+            international ESA conference on guidance, navigation & control
+            systems, 2021.
 
-def list_jitter_frequencies_s2():
-    """
-
-    References
-    ----------
-    .. [Mi21] Mingione, "Solar array drive mechanism disturbance estimation:
-              a robust approach applied to Sentinel-2 mission", Msc thesis of
-              Politecnico di Milano, April 2021.
-    .. [Al21] Alazard et al., "Characterization of SADM induced disturbances
-              and their effects on spacecraft pointing errors" 11th
-              international ESA conference on guidance, navigation & control
-              systems, 2021.
-
-    """
-    d = {'imperfection': [1, 2, 3, 4, 5, 6],
-         'angular rates': [13616., 184., 197.3, 14800., 197.3, 185.],
-         'gear pair': [(2,3), (2,3), (2,3), (3,4), (3,4), (3,4)],
-         'cause': ['gear frequency', 'a tooth on body 2', 'a tooth on body 3',
-                   'gear frequency', 'a tooth on body 3', 'a tooth on body 4'],
-         'number of sources': [1, 74, 69, 1, 75, 80]}
-    df = pd.DataFrame.from_dict(d)
-    return df
+"""
+S2_JITTER_FREQUENCIES = pd.DataFrame({
+    'imperfection': [1, 2, 3, 4, 5, 6],
+    'angular rates': [13616., 184., 197.3, 14800., 197.3, 185.],
+    'gear pair': [(2, 3), (2, 3), (2, 3), (3, 4), (3, 4), (3, 4)],
+    'cause': [
+        'gear frequency', 'a tooth on body 2', 'a tooth on body 3',
+        'gear frequency', 'a tooth on body 3', 'a tooth on body 4'
+    ],
+    'number of sources': [1, 74, 69, 1, 75, 80]
+})
 
 # solar panel
 # angular angular velocity is 0.06°/s during sun-tracking
@@ -96,16 +144,6 @@ def list_jitter_frequencies_s2():
 # According to [RD.3] the required spacecraft pointing and attitude during extended observation is a
 # specified roll angle up to ±20.38 deg. The quaternions are reflecting this attitude mode if extended
 # observations are performed
-
-def list_gps_antenna_coords():
-    d = {'X': [232., 232.],
-         'Y': [227.5, -72.5],
-         'Z': [-810., -810.],
-         'R': [[[-0.966, 0., -0.259], [0., 1., 0.], [0.259, 0., -0.966]],
-               [[-0.966, 0., -0.259], [0., 1., 0.], [0.259, 0., -0.966]]]
-         }
-    df = pd.DataFrame.from_dict(d, orient="index", columns=['GPS-A', 'GPS-B'])
-    return df
 
 # https://documentation.dataspace.copernicus.eu/Data/SentinelMissions/Sentinel2.html#sentinel-2-precise-orbit-determination-pod-products
 
