@@ -29,7 +29,7 @@ Hence, recordings can be short, more specifics about the coverage can be found i
 Furthermore, within a fight the data transfer can be subdivided towards different ground stations.
 In that case the datatake is subdivided into **datastrips**, which should have some spatial overlap.
 
-```geojson
+```geojson {description: "My cat, Robert Downey Jr."}
 {
 "type": "FeatureCollection",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
