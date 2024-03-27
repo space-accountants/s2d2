@@ -27,7 +27,7 @@ the numbering of neighboring orbits is not incremental.
 The flightpath over one orbit is called a **datatake**, this can the full extent of the orbit, but typically the sensor acquires only over land. 
 Hence, recordings can be short, more specifics about the coverage can be found in the [campaign archive](https://sentinel.esa.int/web/sentinel/copernicus/sentinel-2/acquisition-plans/archive).
 Furthermore, within a fight the data transfer can be subdivided towards different ground stations.
-In that case the datatake is subdivided into ![datastrips](https://place-hold.it/64x24/fff/AA1555?text=datastrips&bold), which should have some spatial overlap.
+In that case the datatake is subdivided into ![datastrips](https://place-hold.it/68x32/fff/AA1555?text=datastrips&bold), which should have some spatial overlap.
 
 ```geojson {description: "My cat, Robert Downey Jr."}
 {
@@ -162,6 +162,7 @@ Each .
 	  Sentinel2Band : zenith  
 	  Sentinel2Band : azimuth  
 	  Sentinel2Band : timing
+  style Sentinel2Datastrip fill:#AA1555
 ```
 
 ## Installation
