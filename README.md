@@ -29,6 +29,36 @@ Hence, recordings can be short, more specifics about the coverage can be found i
 Furthermore, within a fight the data transfer can be subdivided towards different ground stations.
 In that case the datatake is subdivided into **datastrips**, which should have some spatial overlap.
 
+```geojson 
+
+{
+    "type": "FeatureCollection",
+    "features": [{ "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": [0, 0]
+        },
+        "properties": {
+            "marker-size": "medium",
+            "marker-symbol": "bus",
+            "marker-color": "#ace"
+        }
+    }, {
+        "type": "Feature",
+        "geometry": {
+            "type": "LineString",
+            "coordinates": [[0, 0], [10, 10]]
+        },
+        "properties": {
+            "stroke": "#AA1555",
+            "stroke-width": 2
+        }
+    }]
+}
+
+```
+
+
 ```geojson {description: "todo make a caption of this figure"}
 {
 "type": "FeatureCollection",
