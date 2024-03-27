@@ -162,7 +162,8 @@ Each .
 	  Sentinel2Band : zenith  
 	  Sentinel2Band : azimuth  
 	  Sentinel2Band : timing
-  style Sentinel2Datastrip fill:#AA1555
+  style Sentinel2Datastrip fill:#AA1555,color:#fff
+  style Sentinel2Tile fill:#5287C6,color:#fff
 ```
 
 ## Installation
