@@ -41,7 +41,7 @@ In that case the datatake is subdivided into **datastrips**, which should have s
         "properties": {
             "marker-size": "medium",
             "marker-symbol": "bus",
-            "marker-color": "#ace"
+            "marker-color": "#5287C6"
         }
     }, {
         "type": "Feature",
