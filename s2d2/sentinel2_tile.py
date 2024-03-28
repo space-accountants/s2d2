@@ -11,7 +11,6 @@ from .typing import Path
 from .sentinel2_instrument import MSI_SPECIFICS, dn_to_toa
 from .sentinel2_band import Sentinel2Band
 from .sentinel2_grid import Sentinel2Anglegrid
-from .sentinel2_platform import Sentinel2Platform
 from .eo_imagery import bandCollection
 
 class Sentinel2Tile:
