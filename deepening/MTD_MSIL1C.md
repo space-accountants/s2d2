@@ -78,5 +78,5 @@ classDiagram
     DEGRADED_MSI_DATA_PERCENTAGE}
   class `Pixel_Level_QI`{
     <<geometry>>
-    MASK_FILENAME <<bandId,type>>}
+    `MASK_FILENAME <<bandId,type>>`}
 ```
