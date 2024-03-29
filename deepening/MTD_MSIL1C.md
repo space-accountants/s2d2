@@ -22,13 +22,14 @@ classDiagram
     `Archiving_Info` : +ARCHIVING_CENTRE
     `Archiving_Info` : +ARCHIVING_TIME
   class `n1:Geometric_Info`
-  class `Tile_Geocoding`
-    `Tile_Geocoding` : +HORIZONTAL_CS_NAME 
-    `Tile_Geocoding` : +HORIZONTAL_CS_CODE
-  class `Size`
-    `Size` : +NROWS  
-    `Size` : +NCOLS  
-    `Size` : +resolution   
+  class `Tile_Geocoding`{
+    HORIZONTAL_CS_NAME 
+    HORIZONTAL_CS_CODE}
+  class `Size`{
+    <<resolution>>
+    NROWS  
+    NCOLS  
+}
   class `Geoposition`{
     <<resolution>>
     ULX  
