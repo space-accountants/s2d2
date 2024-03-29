@@ -30,11 +30,11 @@ classDiagram
     `Size` : +NCOLS  
     `Size` : +resolution   
   class `Geoposition`{
+    <<resolution>>
     ULX  
     ULY 
     XDIM 
-    YDIM  
-    resolution      
+    YDIM     
 }
   class `Tile_Angles`
   class `n1:Quality_Indicators_Info`
