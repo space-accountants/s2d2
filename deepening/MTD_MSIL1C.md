@@ -9,8 +9,8 @@ classDiagram
   `n1:General_Info` <-- `Archiving_Info`
   `n1:Geometric_Info` <-- `Tile_Geocoding`
   `n1:Geometric_Info` <-- `Tile_Angles` 
-  `Tile_Geocoding` 1 <-- 3 `Size`
-  `Tile_Geocoding` 1 <-- 3 `Geoposition`
+  `Tile_Geocoding` "1" <-- "3" `Size`
+  `Tile_Geocoding` "1" <-- "3" `Geoposition`
    
   class `n1:Level-1C_Tile_ID`
   class `n1:General_Info`
