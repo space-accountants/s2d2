@@ -104,8 +104,8 @@ Each .
 	Sentinel2PlatformSpecs "1" <|-- "1" Sentinel2GNSSSpecs
 			
 	class Sentinel2Product
-	link Sentinel2Product "https://s2d2.readthedocs.io/en/latest/autoapi/s2d2/sentinel2_product/index.html" "link towards readthedocs"
-      Sentinel2Product : path
+	link Sentinel2Product "https://s2d2.readthedocs.io/en/latest/autoapi/s2d2/sentinel2_product/index.html#s2d2.sentinel2_product.Sentinel2Product" "link towards readthedocs"
+    Sentinel2Product : path
 	  Sentinel2Product : sensing_time
 	  Sentinel2Product : spacecraft 
 	  Sentinel2Product : nanval 
@@ -113,49 +113,54 @@ Each .
 	  Sentinel2Product : rel_img_dir  
 	  Sentinel2Product : rel_ds_dir  
 	  Sentinel2Product : band_list     
-    class Sentinel2Datastrip
-      Sentinel2Datastrip : path
-      Sentinel2Datastrip : spacecraft 
-      Sentinel2Datastrip : datatake_id  
-      Sentinel2Datastrip : orbit  
-      Sentinel2Datastrip : orbit_absolute  
-      Sentinel2Datastrip : orbit_counter     
-      Sentinel2Datastrip : tile_list  
-      Sentinel2Datastrip : gps_flightpath  
-      Sentinel2Datastrip : attitudes_corrected  
-      Sentinel2Datastrip : attitudes_raw  
-      Sentinel2Datastrip : detector_time  
-      Sentinel2Datastrip : sat_time  
-      Sentinel2Datastrip : sat_ang  
-      Sentinel2Datastrip : sat_quat  
-      Sentinel2Datastrip : sat_str  
-      Sentinel2Datastrip : integration_time  
-      Sentinel2Datastrip : sampling_time  
-    class Sentinel2Tile
-      Sentinel2Tile : path
-      Sentinel2Tile : tile_id
-      Sentinel2Tile : mgrs_id
-      Sentinel2Tile : datastrip_id 
-      Sentinel2Tile : resolution
-      Sentinel2Tile : rows
-      Sentinel2Tile : columns
-      Sentinel2Tile : epsg
-      Sentinel2Tile : geotransforms
-      Sentinel2Tile : sun_azimuth_mean
-      Sentinel2Tile : sun_zenith_mean  
-    class Sentinel2Anglegrid
-      Sentinel2Anglegrid : epsg  
-      Sentinel2Anglegrid : unit  
-      Sentinel2Anglegrid : geotransform
-      Sentinel2Anglegrid : zenith
-      Sentinel2Anglegrid : azimuth  
-      Sentinel2Anglegrid : band
-      Sentinel2Anglegrid : detector
-      Sentinel2Anglegrid : rows 
-      Sentinel2Anglegrid : columns 
-      Sentinel2Anglegrid : depth
+  class Sentinel2Datastrip
+  link Sentinel2Datastrip "https://s2d2.readthedocs.io/en/latest/autoapi/s2d2/sentinel2_datastrip/index.html#s2d2.sentinel2_datastrip.Sentinel2Datastrip" "link towards readthedocs"
+    Sentinel2Datastrip : path
+    Sentinel2Datastrip : spacecraft 
+    Sentinel2Datastrip : datatake_id  
+    Sentinel2Datastrip : orbit  
+    Sentinel2Datastrip : orbit_absolute  
+    Sentinel2Datastrip : orbit_counter     
+    Sentinel2Datastrip : tile_list  
+    Sentinel2Datastrip : gps_flightpath  
+    Sentinel2Datastrip : attitudes_corrected  
+    Sentinel2Datastrip : attitudes_raw  
+    Sentinel2Datastrip : detector_time  
+    Sentinel2Datastrip : sat_time  
+    Sentinel2Datastrip : sat_ang  
+    Sentinel2Datastrip : sat_quat  
+    Sentinel2Datastrip : sat_str  
+    Sentinel2Datastrip : integration_time  
+    Sentinel2Datastrip : sampling_time  
+  class Sentinel2Tile
+  link Sentinel2Tile "https://s2d2.readthedocs.io/en/latest/autoapi/s2d2/sentinel2_tile/index.html#s2d2.sentinel2_tile.Sentinel2Tile" "link towards readthedocs"
+    Sentinel2Tile : path
+    Sentinel2Tile : tile_id
+    Sentinel2Tile : mgrs_id
+    Sentinel2Tile : datastrip_id 
+    Sentinel2Tile : resolution
+    Sentinel2Tile : rows
+    Sentinel2Tile : columns
+    Sentinel2Tile : epsg
+    Sentinel2Tile : geotransforms
+    Sentinel2Tile : sun_azimuth_mean
+    Sentinel2Tile : sun_zenith_mean  
+  class Sentinel2Anglegrid
+  link Sentinel2Anglegrid "https://s2d2.readthedocs.io/en/latest/autoapi/s2d2/sentinel2_grid/index.html#s2d2.sentinel2_grid.Sentinel2Anglegrid" "link towards readthedocs"
+    Sentinel2Anglegrid : epsg  
+    Sentinel2Anglegrid : unit  
+    Sentinel2Anglegrid : geotransform
+    Sentinel2Anglegrid : zenith
+    Sentinel2Anglegrid : azimuth  
+    Sentinel2Anglegrid : band
+    Sentinel2Anglegrid : detector
+    Sentinel2Anglegrid : rows 
+    Sentinel2Anglegrid : columns 
+    Sentinel2Anglegrid : depth
 	class bandCollection
+	link bandCollection "https://s2d2.readthedocs.io/en/latest/autoapi/s2d2/eo_imagery/index.html#s2d2.eo_imagery.bandCollection" "link towards readthedocs"
 	class Sentinel2Band
+  link Sentinel2Band "https://s2d2.readthedocs.io/en/latest/autoapi/s2d2/sentinel2_band/index.html#s2d2.sentinel2_band.Sentinel2Band" "link towards readthedocs"
 	  Sentinel2Band : index  
 	  Sentinel2Band : epsg
 	  Sentinel2Band : geotransform
@@ -168,12 +173,14 @@ Each .
 	  Sentinel2Band : azimuth  
 	  Sentinel2Band : timing
 	class Sentinel2PlatformSpecs
+	link Sentinel2PlatformSpecs "https://s2d2.readthedocs.io/en/latest/autoapi/s2d2/sentinel2_platform/index.html#s2d2.sentinel2_platform.Sentinel2PlatformSpecs" "link towards readthedocs"
     Sentinel2PlatformSpecs : cospar_id
 	  Sentinel2PlatformSpecs : norad_id
 	  Sentinel2PlatformSpecs : esoc_id
 	  Sentinel2PlatformSpecs : launch_date
 	  Sentinel2PlatformSpecs : drag
 	class Sentinel2GNSSSpecs
+	link Sentinel2GNSSSpecs "https://s2d2.readthedocs.io/en/latest/autoapi/s2d2/sentinel2_platform/index.html#s2d2.sentinel2_platform.Sentinel2GNSSSpecs" "link towards readthedocs"
     Sentinel2GNSSSpecs : x
 	  Sentinel2GNSSSpecs : y
 	  Sentinel2GNSSSpecs : z
