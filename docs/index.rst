@@ -26,6 +26,12 @@ Functionality
 
   modules
 
+.. toctree::
+ :maxdepth: 1
+ :caption: Background
+
+ acronyms
+
 Indices and tables
 ==================
 

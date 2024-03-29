@@ -3,6 +3,9 @@
 
 import re
 
+
+# sentinel relative orbit numbers go from 1 to 143
+
 def check_mgrs_code(code_str):
     """ validate a MGRS tile code and make it uppercase
 

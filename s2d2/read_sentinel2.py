@@ -450,6 +450,31 @@ def _get_orbit_s2_from_root(root):
             row = int(field.text)
     return row
 
+def _get_spacecraft_s2_from_root(root):
+    gnrl_info = None
+    for child in root:
+        if child.tag.endswith('General_Info'):
+            gnrl_info = child
+    assert(gnrl_info is not None), ('metadata not in xml file')
+
+    prod_info = None
+    for child in gnrl_info:
+        if child.tag == 'Product_Info':
+            prod_info = child
+    assert(prod_info is not None), ('metadata not in xml file')
+
+    data_take = None
+    for child in prod_info:
+        if child.tag == 'Datatake':
+            data_take = child
+    assert(data_take is not None), ('metadata not in xml file')
+
+    version = None
+    for field in data_take:
+        if field.tag == 'SPACECRAFT_NAME':
+            version = field.text[-1].upper()
+    return version
+
 def read_geotransform_s2(path, fname='MTD_TL.xml', resolution=10):
     """ get the mapping transformation of the Sentinel-2 image
 

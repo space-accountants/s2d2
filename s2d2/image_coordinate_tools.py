@@ -64,7 +64,7 @@ def map2pix(geotransform, x, y):
 
     Parameters
     ----------
-    geotransform : tuple, size={(6,1), (8,1)}
+    geotransform : tuple, size=(6,1)
         georeference transform of an image.
     x : np.array, size=(m), ndim={1,2,3}, dtype=float
         horizontal map coordinate.
@@ -105,7 +105,7 @@ def map2pix(geotransform, x, y):
     else:  # if only a float is given
         x, y = correct_floating_parameter(x), correct_floating_parameter(y)
 
-    A = np.array(geotransform[:-2]).reshape(2, 3)[:, 1:]
+    A = np.array(geotransform).reshape(2, 3)[:, 1:]
     P = np.linalg.inv(A)
 
     x_loc = x - geotransform[0]

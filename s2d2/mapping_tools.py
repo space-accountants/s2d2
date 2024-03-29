@@ -67,6 +67,7 @@ def map2ll(xy, spatial_ref):
         np.array with spherical coordinates. In the following form:
         [[lat, lon], [lat, lon], ... ]
     """
+    xy = np.atleast_2d(xy)
     if isinstance(spatial_ref, str):
         spatial_str = spatial_ref
         spatial_ref = osr.SpatialReference()
