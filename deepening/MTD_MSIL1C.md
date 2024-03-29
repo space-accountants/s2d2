@@ -29,12 +29,13 @@ classDiagram
     `Size` : +NROWS  
     `Size` : +NCOLS  
     `Size` : +resolution   
-  class `Geoposition`
-    `Geoposition` : +ULX  
-    `Geoposition` : +ULY 
-    `Geoposition` : +XDIM 
-    `Geoposition` : +YDIM  
-    `Geoposition` : +resolution      
+  class `Geoposition`{
+    ULX  
+    ULY 
+    XDIM 
+    YDIM  
+    resolution      
+}
   class `Tile_Angles`
   class `n1:Quality_Indicators_Info`
 ```
