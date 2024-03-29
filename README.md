@@ -98,7 +98,9 @@ Each .
 	Sentinel2Tile "1" -- "1" bandCollection
 	bandCollection "1" -- "1..*" Sentinel2Band
 	Sentinel2Band "1" <|-- "1..*" Sentinel2Anglegrid
-		
+	Sentinel2PlatformSpecs "1" -- "1..*" Sentinel2Product
+	Sentinel2PlatformSpecs "1" <|-- "1" Sentinel2GNSSSpecs
+			
 	class Sentinel2Product
 	link Sentinel2Product "http://www.space-accountants.eu" "link towards readthedocs"
       Sentinel2Product : path
@@ -163,6 +165,18 @@ Each .
 	  Sentinel2Band : zenith  
 	  Sentinel2Band : azimuth  
 	  Sentinel2Band : timing
+	class Sentinel2PlatformSpecs
+    Sentinel2PlatformSpecs : cospar_id
+	  Sentinel2PlatformSpecs : norad_id
+	  Sentinel2PlatformSpecs : esoc_id
+	  Sentinel2PlatformSpecs : launch_date
+	  Sentinel2PlatformSpecs : drag
+	class Sentinel2GNSSSpecs
+    Sentinel2GNSSSpecs : x
+	  Sentinel2GNSSSpecs : y
+	  Sentinel2GNSSSpecs : z
+	  Sentinel2GNSSSpecs : orientation
+	  
   style Sentinel2Datastrip fill:#AA1555,color:#fff
   style Sentinel2Tile fill:#5287C6,color:#fff
 ```

@@ -6,17 +6,17 @@ import pandas as pd
 
 
 @dataclass
-class S2PlatformSpecs():
+class Sentinel2PlatformSpecs():
     cospar_id: str
     norad_id: int
-    esoc: int
+    esoc_id: int
     launch_date: date
     drag: np.ndarray
     # mass ?
 
 
 S2_PLATFORM_SPECS = {
-    'A': S2PlatformSpecs(
+    'A': Sentinel2PlatformSpecs(
         '2015-028A',
         40697,
         266,
@@ -30,7 +30,7 @@ S2_PLATFORM_SPECS = {
             dtype=int
         )
     ),
-    'B': S2PlatformSpecs(
+    'B': Sentinel2PlatformSpecs(
         '2017-013A',
         42063,
         267,
@@ -48,7 +48,7 @@ S2_PLATFORM_SPECS = {
 
 
 @dataclass
-class S2GNSSSpecs():
+class Sentinel2GNSSSpecs():
     x: float
     y: float
     z: float
@@ -59,7 +59,7 @@ class S2GNSSSpecs():
 
 
 S2_GNSS_SPECS = {
-    'GPS-A': S2GNSSSpecs(
+    'GPS-A': Sentinel2GNSSSpecs(
         232.,
         227.5,
         -810.,
@@ -69,7 +69,7 @@ S2_GNSS_SPECS = {
             [0.259, 0., -0.966]
         ]),
     ),
-    'GPS-B': S2GNSSSpecs(
+    'GPS-B': Sentinel2GNSSSpecs(
         232.,
         -72.5,
         -810.,
