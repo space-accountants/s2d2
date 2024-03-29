@@ -99,6 +99,8 @@ Each .
 	bandCollection "1" -- "1..*" Sentinel2Band
 	Sentinel2Band "1" <|-- "1..*" Sentinel2Anglegrid
 	Sentinel2PlatformSpecs "1" -- "1..*" Sentinel2Product
+	Sentinel2PlatformSpecs "1" -- "1..*" Sentinel2Datastrip
+	Sentinel2PlatformSpecs "1" -- "1..*" Sentinel2Tile
 	Sentinel2PlatformSpecs "1" <|-- "1" Sentinel2GNSSSpecs
 			
 	class Sentinel2Product
