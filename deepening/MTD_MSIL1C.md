@@ -8,6 +8,7 @@ classDiagram
   `n1:Level-1C_Tile_ID` <-- `n1:Quality_Indicators_Info`    
 
   class `n1:Level-1C_Tile_ID`
+  `n1:Level-1C_Tile_ID` : TILE_ID
   class `n1:General_Info`
   class `n1:Geometric_Info`
   class `n1:Quality_Indicators_Info`
