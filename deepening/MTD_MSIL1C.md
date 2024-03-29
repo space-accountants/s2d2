@@ -43,8 +43,8 @@ classDiagram
     ULY 
     XDIM 
     YDIM}
-  class `Tile_Angles`
-  <<metadataLevel>>
+  class `Tile_Angles`{
+    <<metadataLevel>>}
   class `Sun_Angles_Grid`
   class `Zenith`{
     COL_STEP
@@ -57,7 +57,7 @@ classDiagram
   class `Mean_Sun_Angle`{
     ZENITH_ANGLE
     AZIMUTH_ANGLE}
-  class `Viewing_Incidence_Angles_Grids`
-  <<bandId,detectorId>>
+  class `Viewing_Incidence_Angles_Grids`{
+    <<bandId,detectorId>>}
   class `n1:Quality_Indicators_Info`
 ```
