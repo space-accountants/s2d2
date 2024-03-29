@@ -58,8 +58,6 @@ classDiagram
     ZENITH_ANGLE
     AZIMUTH_ANGLE}
   class `Viewing_Incidence_Angles_Grids`
-  <<bandId>>
-  <<detectorId>>
-  
+  <<bandId,detectorId>>
   class `n1:Quality_Indicators_Info`
 ```
