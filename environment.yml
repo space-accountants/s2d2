@@ -9,3 +9,6 @@ dependencies:
   - pillow
   - scipy
   - shapely
+  - shutil
+  - urllib
+  - zipfile

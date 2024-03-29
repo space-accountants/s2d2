@@ -38,6 +38,13 @@ def check_mgrs_code(code_str):
     return tile_code
 
 def check_sen2_safe_code(code_str):
+    """ check if the .SAFE code string is correct
+
+    Parameters
+    ----------
+    code_str: str, len=65
+        folder name where L1C Sentinel-2 data is situated
+    """
     if not isinstance(code_str, str):
         raise TypeError("please provide a string")
 
