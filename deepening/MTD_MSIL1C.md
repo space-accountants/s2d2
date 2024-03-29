@@ -19,13 +19,14 @@ classDiagram
   `Tile_Angles` <-- `Mean_Sun_Angle`  
   `Viewing_Incidence_Angles_Grids` <-- `Zenith` 
   `Viewing_Incidence_Angles_Grids` <-- `Azimuth` 
+
   class `n1:Level-1C_Tile_ID`
   class `n1:General_Info`{
     TILE_ID
     DATASTRIP_ID
     DOWNLINK_PRIORITY
     SENSING_TIME}
-  class `Archiving_Info{
+  class `Archiving_Info`{
     ARCHIVING_CENTRE
     ARCHIVING_TIME}
   class `n1:Geometric_Info`
