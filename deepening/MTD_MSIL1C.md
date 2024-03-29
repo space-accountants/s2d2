@@ -17,8 +17,13 @@ classDiagram
   `Zenith` <-- `Values_List`  
   `Azimuth` <-- `Values_List`  
   `Tile_Angles` <-- `Mean_Sun_Angle`  
+  `Tile_Angles` <-- `Viewing_Incidence_Angles_Grids`
   `Viewing_Incidence_Angles_Grids` <-- `Zenith` 
   `Viewing_Incidence_Angles_Grids` <-- `Azimuth` 
+  `Tile_Angles` <-- `Mean_Viewing_Incidence_Angle_List`
+  `Mean_Viewing_Incidence_Angle_List` <-- `Mean_Viewing_Incidence_Angle`
+  `n1:Quality_Indicators_Info` <-- `Image_Content_QI`
+  `n1:Quality_Indicators_Info` <-- `Pixel_Level_QI`
 
   class `n1:Level-1C_Tile_ID`
   class `n1:General_Info`{
@@ -60,5 +65,18 @@ classDiagram
     AZIMUTH_ANGLE}
   class `Viewing_Incidence_Angles_Grids`{
     <<bandId,detectorId>>}
-  class `n1:Quality_Indicators_Info`
+  class Mean_Viewing_Incidence_Angle_List
+  class `Mean_Viewing_Incidence_Angle`{
+    <<bandId>>
+    ZENITH_ANGLE
+    AZIMUTH_ANGLE}
+  class `n1:Quality_Indicators_Info`{
+    <<metadataLevel>>
+    PVI_FILENAME}
+  class `Image_Content_QI`{
+    CLOUDY_PIXEL_PERCENTAGE
+    DEGRADED_MSI_DATA_PERCENTAGE}
+  class `Pixel_Level_QI`{
+    <<geometry>>
+    MASK_FILENAME <<bandId,type>>}
 ```
