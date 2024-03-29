@@ -104,7 +104,7 @@ Each .
 	Sentinel2PlatformSpecs "1" <|-- "1" Sentinel2GNSSSpecs
 			
 	class Sentinel2Product
-	link Sentinel2Product "http://www.space-accountants.eu" "link towards readthedocs"
+	link Sentinel2Product "https://s2d2.readthedocs.io/en/latest/autoapi/s2d2/sentinel2_product/index.html" "link towards readthedocs"
       Sentinel2Product : path
 	  Sentinel2Product : sensing_time
 	  Sentinel2Product : spacecraft 
