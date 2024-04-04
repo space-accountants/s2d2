@@ -39,13 +39,16 @@ class Sentinel2Product:
         └ MTD_MSIL1C.xml <- metadata about the product
     """
 
-    def __init__(self, path: Optional[Path] = None) -> None:
+    def __init__(self,
+                 path: Optional[Path] = None,
+                 ds_dir: Optional[Path] = None,
+                 img_dir: Optional[Path] = None) -> None:
         # add as optional paths of all files used here?
         # default calculate relative paths for datastrip and granule
         # and pass them to objects below
         self.path = path
-        self.datastrip = Sentinel2Datastrip(path)
-        self.tile = Sentinel2Tile(path)
+        self.datastrip = Sentinel2Datastrip(ds_dir)
+        self.tile = Sentinel2Tile(img_dir)
         self.sensing_time = None
         self.spacecraft = None
         self.nanval = None
@@ -54,7 +57,8 @@ class Sentinel2Product:
         self.rel_ds_dir = None
         self.band_list = None
 
-    def load_metadata(self) -> None:
+    def load_metadata(self,
+                      fname: Optional[str] = 'MTD_MSIL1C.xml') -> None:
         """
         Load meta-data from the product file (MTD_MSIL1C.xml)
 
@@ -92,7 +96,7 @@ class Sentinel2Product:
 
         assert os.path.exists(self.path), 'folder does not seem to exist'
 
-        root = get_root_of_table(self.path, fname='MTD_MSIL1C.xml')
+        root = get_root_of_table(self.path, fname=fname)
 
         gnrl_info = get_branch(root, 'General_Info')
         prod_info = get_branch(gnrl_info, 'Product_Info')
@@ -106,6 +110,8 @@ class Sentinel2Product:
 
         # get location where imagery is situated
         self._get_sub_dirs_from_xmlstruct(gran_org)
+        # update tile.file_dict
+        self.tile.file_dict = {x.text[-3:]: os.path.join(self.path, x.text) for x in gran_org[0]}
         self.tile.path = os.path.join(self.path, os.path.dirname(self.rel_img_dir))
         self.datastrip.path = os.path.join(self.path, self.rel_ds_dir)
 

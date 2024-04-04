@@ -24,6 +24,7 @@ class Sentinel2Band():
                  rows: int,
                  columns: int) -> None:
         self.index = index
+        self.path = None
 
         # mapping specifics
         self.epsg = epsg
@@ -62,10 +63,27 @@ class Sentinel2Band():
     def read_band(self,
                   path: Path,
                   fname: Optional[str]):
-        # todo: what to do with full integration...
+        """ Reads the image into the Sentinel2Band class as a masked array
+
+        Parameters
+        ----------
+        path : str
+            Folder where the data is located
+        fname : str
+            Name of the image
+        """
+        if fname.find('.') == -1: # no extension is given
+            img_formats = ['.jp2', '.tif', '.tiff']
+            for suffix in img_formats:
+                if os.path.exists(os.path.join(path, fname+suffix)):
+                    fname += suffix
+                    continue
+
         img_path = os.path.join(path, fname)
         img = gdal.Open(img_path)
         assert img is not None, ('could not open dataset ' + fname)
+
+        #todo: get satval and nanval from Sentinel2Product
 
         band = np.array(img.GetRasterBand(1).ReadAsArray())
         no_dat = img.GetRasterBand(1).GetNoDataValue()
@@ -75,6 +93,14 @@ class Sentinel2Band():
         self.unit = 'DN'
 
     def dn_to_toa(self):
+        """
+        convert the digital numbers of Sentinel-2 data to top of atmosphere (TOA), see
+        for more details [wwwS2L1C]_.
+
+        Notes
+        -----
+        .. [wwwS2L1C] https://sentinel.esa.int/web/sentinel/technical-guides/sentinel-2-msi/level-1c/algorithm
+        """
         if self.unit == 'TOA':
             return
         assert (self.unit == 'DN'), 'input should be digital numbers'

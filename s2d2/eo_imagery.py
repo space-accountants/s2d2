@@ -7,7 +7,7 @@ class bandCollection(UserDict):
         super().__setitem__(key, value)
 
     def __getitem__(self, key):
-        key = str(key).lower()
+        key = str(key)
         return self.data[key]
 
 class spectralIndices:

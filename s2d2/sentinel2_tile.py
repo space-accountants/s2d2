@@ -1,3 +1,5 @@
+import os
+
 from typing import Iterable, Optional
 from osgeo import osr
 
@@ -17,6 +19,7 @@ class Sentinel2Tile:
     def __init__(self, path: Path) -> None:
         # add as optional paths of all files used here?
         self.path = path
+        self.file_dict = None
         self.tile_id = None
         self.mgrs_id = None
         self.datastrip_id = None
@@ -43,6 +46,7 @@ class Sentinel2Tile:
 
     def load_metadata(self) -> None:
         """
+        Load basic meta-data of the tile, such as mapping specifics, as well as, rough view- and sun-angles
 
         Notes
         -----
@@ -102,15 +106,18 @@ class Sentinel2Tile:
     def get_upperleft(self) -> list[float]:
         return list(self.geotransforms.values())[0][slice(0, -1, 3)]
 
-    def read_band(self, band: str, toa: bool = False):
-        pass
-
-    def read_bands(self, bands: Optional[Iterable] = None, toa: bool = False):
+    def read_bands(self,
+                   bands: Optional[Iterable] = None,
+                   toa: bool = False):
         # if "bands" not given (default), read all bands
-        bands = ...
-        if toa:
-            bands = dn_to_toa(bands)
-        return bands
+        if bands is None: bands = MSI_SPECIFICS['bandid']
+
+        for band_name, band_index in bands.items():
+            self.bands[band_name].read_band(os.path.dirname(self.file_dict[band_name]),
+                                            os.path.basename(self.file_dict[band_name]))
+            if toa:
+                self.bands[band_name].dn_to_toa()
+        return
 
     def read_detector_mask(self, bands: Optional[Iterable] = None):
         # read_sentinel2.read_detector_mask
