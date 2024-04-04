@@ -119,10 +119,15 @@ class Sentinel2Tile:
                 self.bands[band_name].dn_to_toa()
         return
 
-    def read_detector_mask(self, bands: Optional[Iterable] = None):
+    def read_detector_masks(self,
+                           bands: Optional[Iterable] = None):
         # read_sentinel2.read_detector_mask
         # if "bands" not given (default), read all bands
-        pass
+        if bands is None: bands = MSI_SPECIFICS['bandid']
+
+        for band_name, band_index in bands.items():
+            self.bands[band_name].read_detector_gml(os.path.join(self.path, 'QI_DATA'))
+        return
 
     def read_cloud_mask(self):
         # read_sentinel2.read_cloud_mask
