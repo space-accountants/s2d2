@@ -7,6 +7,7 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
+import logging
 
 from .eo_imagery import bandCollection
 from .image_coordinate_tools import pix_centers
@@ -215,8 +216,10 @@ def calculate_correct_mapping(grid: Sentinel2Anglegrid,
 
 def remap_observation_angles(grid: Sentinel2Anglegrid,
                              bands: bandCollection,
-                             lat, lon, radius, inclination, period, time_para, combos):
+                             lat, lon, radius, inclination, period, time_para, combos,
+                             chunking=False, chunksize=1E6):
     # reconstruct observation angles and sensing time
+    cs = int(float(chunksize))
 
     lat,lon = lat_lon_angle_check(lat,lon)
     omega_0,lon_0 = _omega_lon_calculation(np.deg2rad(lat), np.deg2rad(lon), inclination)
@@ -236,7 +239,7 @@ def remap_observation_angles(grid: Sentinel2Anglegrid,
         if band.zenith is None: bands[band_id].zenith = np.zeros_like(x_grd)
 
         for sca in combos[doi,1]:
-            ok = (band.detector == sca)
+            ok = band.detector == sca
             if not np.any(ok): continue
             dx, dy = (x_grd[ok]-grid.geotransform[0],
                       grid.geotransform[3]-y_grd[ok])
@@ -250,19 +253,57 @@ def remap_observation_angles(grid: Sentinel2Anglegrid,
             del dx, dy, coeffs, coef_id
 
             # acquisition angles
-            p_x = orbital_calculation(dt, radius, inclination, period, omega_0, lon_0) # satellite vector
+            if chunking:
+                logging.debug('Implementing chuncking')
+                p_x = np.zeros((dt.size, 3))
+                chunks = int(dt.size // chunksize)
+                for i in range(chunks):
+                    p_x[i * cs: (i + 1) * cs,:] = orbital_calculation(dt[i * cs: (i + 1) * cs],
+                        radius, inclination, period, omega_0, lon_0)
+                p_x[chunks * cs:,:] = orbital_calculation(dt[chunks * cs:],
+                        radius, inclination, period, omega_0, lon_0)
+            else:
+                p_x = orbital_calculation(dt, radius, inclination, period, omega_0, lon_0) # satellite vector
+            logging.info('Satellite orbit positions calculated')
+            del dt
 
             proj = osr.SpatialReference()
             proj.ImportFromEPSG(band.epsg)
-            ll_pix = map2ll(np.stack((x_grd[ok], y_grd[ok]), axis=1), proj)
-            g_x = np.transpose(ground_vec(ll_pix[:, 0], ll_pix[:, 1]))  # ground vector
-            del ll_pix, dt
+            xy_stack = np.stack((x_grd[ok], y_grd[ok]), axis=1)
+            if chunking:
+                logging.debug('Implementing chuncking')
+                g_x = np.zeros((xy_stack.shape[0], 3))
+                chunks = int(xy_stack.shape[0] // chunksize)
+                for i in range(chunks):
+                    ll_pix = map2ll(xy_stack[i * cs: (i + 1) * cs], proj)
+                    g_x[i * cs: (i + 1) * cs,:] = np.transpose(
+                        ground_vec(ll_pix[:, 0], ll_pix[:, 1]))
+                ll_pix = map2ll(xy_stack[chunks * cs:], proj)
+                g_x[chunks*cs:] = np.transpose(ground_vec(ll_pix[:, 0], ll_pix[:, 1]))
+            else:
+                ll_pix = map2ll(xy_stack, proj)
+                g_x = np.transpose(ground_vec(ll_pix[:, 0], ll_pix[:, 1]))  # ground vector
+            del ll_pix, xy_stack
+            logging.info('Ground locations calculated')
 
-            zn, az = acquisition_angles(p_x,g_x)
+            if chunking:
+                logging.debug('Implementing chuncking')
+                zn, az = np.zeros((g_x.shape[0])), np.zeros((g_x.shape[0]))
+                for i in range(chunks):
+                    zn[i * cs: (i + 1) * cs], az[i * cs: (i + 1) * cs] = (
+                        acquisition_angles(p_x[i * cs: (i + 1) * cs,:],
+                                           g_x[i * cs: (i + 1) * cs,:]))
+                zn[chunks * cs:], az[chunks * cs:] = (
+                    acquisition_angles(p_x[chunks * cs:, :],g_x[chunks * cs:, :]))
+            else:
+                zn, az = acquisition_angles(p_x,g_x)
+
+            del p_x, g_x
             bands[band_id].zenith[ok] = zn
             bands[band_id].azimuth[ok] = az
-            del p_x,g_x
-        # put estimates in stack
+            logging.info(f"Acquisition angles estimated for " +
+                         f"detector {sca:02d} of band {band_num:02d}")
+            del zn, az
     return bands
 
 def get_absolute_timing(lat,lon,sat_dict):

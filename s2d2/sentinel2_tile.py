@@ -1,6 +1,6 @@
 import os
+import logging
 import pyproj
-
 
 from typing import Iterable, Optional
 from osgeo import osr
@@ -124,6 +124,7 @@ class Sentinel2Tile:
                                             os.path.basename(self.file_dict[band_name]))
             if toa:
                 self.bands[band_name].dn_to_toa()
+        logging.info("Bands read")
         return
 
     def read_detector_masks(self,
@@ -133,6 +134,8 @@ class Sentinel2Tile:
 
         for band_name, band_index in bands.items():
             self.bands[band_name].read_detector_mask(os.path.join(self.path, 'QI_DATA'))
+
+        logging.info("Detector masks read")
         return
 
     def read_cloud_mask(self):
@@ -267,7 +270,7 @@ class Sentinel2Tile:
         crs.ImportFromEPSG(epsg_code)
         return crs
 
-    def refine_view_angles(self):
+    def refine_view_angles(self, chunking=False):
         # orbit_tools.calculate_correrevolutions_per_dayct_mapping
         platform = S2_PLATFORM_SPECS[self.tile_id[2]]  # 'A' or 'B'
 
@@ -275,8 +278,11 @@ class Sentinel2Tile:
             calculate_correct_mapping(self.view_angle,
                                       inclination=platform.inclination,
                                       revolutions_per_day=platform.revolutions_per_day)
+        logging.info("Observation angles estimated")
         self.bands = remap_observation_angles(self.view_angle, self.bands,
-                                              lat, lon, radius, inclination, period, time_para, combos)
+                                              lat, lon, radius, inclination, period, time_para, combos,
+                                              chunking=chunking)
+        logging.info("View angles refined")
         return
 
     def clip(self, polygon, epsg=4326):
@@ -310,15 +316,15 @@ class Sentinel2Tile:
         for key in self.geotransforms.keys():
             self.geotransforms[key] = tuple([x_min, *list(self.geotransforms[key][1:3]),
                                             y_max, *list(self.geotransforms[key][4:6])])
-            self.columns[key] = int(roi/key * i_rng)
-            self.rows[key] = int(roi/key * j_rng)
+            self.rows[key] = int(roi/key * i_rng)
+            self.columns[key] = int(roi/key * j_rng)
 
         for band_id, band in self.bands.items():
             # resolution of the band
             rob = get_max_pixel_spacing(band.geotransform)
             self.bands[band_id].geotransform = self.geotransforms[rob]
-            self.bands[band_id].rows = self.rows[key]
-            self.bands[band_id].columns = self.columns[key]
+            self.bands[band_id].rows = self.rows[rob]
+            self.bands[band_id].columns = self.columns[rob]
 
             if type(band.digitalnumbers) is type(None): continue
 
@@ -331,13 +337,18 @@ class Sentinel2Tile:
             # clip based on polygon
             i_arr, j_arr = map2pix(self.geotransforms[rob], np.array(x_poly), np.array(y_poly))
             ij_arr = np.hstack((j_arr[:, np.newaxis], i_arr[:, np.newaxis]))
-            msk = Image.new("L", [self.rows[rob], self.columns[rob]], 0)
+            msk = Image.new("L", [self.columns[rob], self.rows[rob]], 0)
 
             ImageDraw.Draw(msk).polygon(tuple(map(tuple, ij_arr[:, 0:2])), outline=1,fill=1)
             msk = np.invert(np.array(msk, dtype=bool))
             img[msk] = 0
 
             self.bands[band_id].digitalnumbers = img
+
+            # update detector, but do not clip to polygon
+            self.bands[band_id].detector = band.detector[row_min:row_max,col_min:col_max]
+
+        logging.info("Bands clipped")
         return
 
     def _get_tile_id_from_xmltree(self,

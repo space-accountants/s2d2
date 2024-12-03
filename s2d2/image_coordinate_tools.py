@@ -168,7 +168,7 @@ def pix_centers(geotransform, rows=None, cols=None, make_grid=True):
     i, j = np.linspace(0, rows - 1, rows), np.linspace(0, cols - 1, cols)
 
     if make_grid:
-        jj, ii = np.meshgrid(j, i)
+        ii, jj = np.meshgrid(i, j, indexing='ij')
         X, Y = pix2map(geotransform, ii, jj)
         return X, Y
     x, _ = pix2map(geotransform, np.repeat(i[0], len(j)), j)
