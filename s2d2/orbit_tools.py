@@ -306,6 +306,24 @@ def remap_observation_angles(grid: Sentinel2Anglegrid,
             del zn, az
     return bands
 
+def fit_flightpath(flightpath, lat, lon, radius, inclination, period):
+
+    dt = np.linspace(-10,10,100)
+    omega_0, lon_0 = _omega_lon_calculation(np.deg2rad(lat), np.deg2rad(lon), inclination)
+    p_x = orbital_calculation(dt, radius, inclination, period, omega_0, lon_0)
+
+    p_0 = orbital_calculation(0., radius, inclination, period, omega_0, lon_0)
+    dist = np.linalg.norm(flightpath.to_numpy() - p_0, axis=-1)
+
+    idx = np.argmin(dist)
+
+    # polynomial subsampling
+    di = np.divide(dist[idx + 1] - dist[idx - 1],
+                   2 * ((2 * dist[idx]) - dist[idx - 1] - dist[idx + 1]))
+    t_0 = (flightpath.index[idx] +
+           (flightpath.index[idx] - flightpath.index[idx-1])*di)
+    return t_0
+
 def get_absolute_timing(lat,lon,sat_dict):
     assert isinstance(sat_dict, dict), 'please provide a dictionary'
     assert ('gps_xyz' in sat_dict.keys()), 'please include GPS metadata'

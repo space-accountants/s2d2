@@ -1,12 +1,17 @@
 import os
+import logging
+
 import numpy as np
+import pandas as pd
 
 from typing import Optional
 
 from .handler.xml import get_root_of_table, get_branch
+from .sentinel2_platform import S2_PLATFORM_SPECS
 from .sentinel2_datastrip import Sentinel2Datastrip
 from .sentinel2_tile import Sentinel2Tile
 from .typing import Path
+from .orbit_tools import calculate_correct_mapping, remap_observation_angles, fit_flightpath
 
 
 class Sentinel2Product:
@@ -119,6 +124,36 @@ class Sentinel2Product:
         self.load_metadata()
         self.tile.load_metadata()
         self.datastrip.load_metadata()
+
+    def refine_view_angles(self, chunking=False):
+        # orbit_tools.calculate_correrevolutions_per_dayct_mapping
+        platform = S2_PLATFORM_SPECS[self.tile.tile_id[2]]  # 'A' or 'B'
+
+        lat, lon, radius, inclination, period, time_para, combos = \
+            calculate_correct_mapping(self.tile.view_angle,
+                                      inclination=platform.inclination,
+                                      revolutions_per_day=platform.revolutions_per_day)
+        logging.info("Observation angles estimated")
+        self.tile.bands = remap_observation_angles(self.tile.view_angle,
+                                                   self.tile.bands,
+                                                   lat, lon, radius, inclination, period, time_para, combos,
+                                                   chunking=chunking)
+        logging.info("View angles refined")
+
+        # adjust towards correct timing
+        xyz = pd.DataFrame(self.datastrip.gps_flightpath['pos'].tolist(),
+                           index=self.datastrip.gps_flightpath.index)
+        t_0 = fit_flightpath(xyz, lat, lon, radius, inclination, period)
+
+        for band_id, band in self.tile.bands.items():
+            if type(self.tile.bands[band_id].timing) is type(None): continue
+            self.tile.bands[band_id].timing = (self.tile.bands[band_id].timing*1E9).astype('timedelta64[ns]') + t_0
+
+        # get time span
+
+        # reduce meta-data of sensors
+        return
+
 
     def prepare_viewing(self): #todo: not sure yet where to place this or how to name it
         toi = self.tile.sensing_time.replace(tzinfo=None)

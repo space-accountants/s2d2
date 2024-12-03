@@ -18,9 +18,7 @@ from .image_coordinate_tools import map2pix, pix2map, get_max_pixel_spacing
 from .sentinel2_instrument import MSI_SPECIFICS, dn_to_toa
 from .sentinel2_band import Sentinel2Band
 from .sentinel2_grid import Sentinel2Anglegrid
-from .sentinel2_platform import S2_PLATFORM_SPECS
 from .eo_imagery import bandCollection
-from .orbit_tools import calculate_correct_mapping, remap_observation_angles
 
 class Sentinel2Tile:
     def __init__(self, path: Path) -> None:
@@ -269,21 +267,6 @@ class Sentinel2Tile:
         crs = osr.SpatialReference()
         crs.ImportFromEPSG(epsg_code)
         return crs
-
-    def refine_view_angles(self, chunking=False):
-        # orbit_tools.calculate_correrevolutions_per_dayct_mapping
-        platform = S2_PLATFORM_SPECS[self.tile_id[2]]  # 'A' or 'B'
-
-        lat, lon, radius, inclination, period, time_para, combos = \
-            calculate_correct_mapping(self.view_angle,
-                                      inclination=platform.inclination,
-                                      revolutions_per_day=platform.revolutions_per_day)
-        logging.info("Observation angles estimated")
-        self.bands = remap_observation_angles(self.view_angle, self.bands,
-                                              lat, lon, radius, inclination, period, time_para, combos,
-                                              chunking=chunking)
-        logging.info("View angles refined")
-        return
 
     def clip(self, polygon, epsg=4326):
         # clip to polygon and adjust the geotransform accordingly
