@@ -4,16 +4,23 @@ from datetime import date
 import numpy as np
 import pandas as pd
 
-
 @dataclass
 class Sentinel2PlatformSpecs():
     cospar_id: str
     norad_id: int
     esoc_id: int
     launch_date: date
-    drag: np.ndarray
+    inclination: float
+    revolutions_per_day: float
+    drag: np.ndarray = np.array(
+            [
+                [558, 30, -30],
+                [30, 819, 30],
+                [-30, 30, 1055]
+            ],
+            dtype=int
+        )
     # mass ?
-
 
 S2_PLATFORM_SPECS = {
     'A': Sentinel2PlatformSpecs(
@@ -21,31 +28,31 @@ S2_PLATFORM_SPECS = {
         40697,
         266,
         date(2015, 6, 23),
-        np.array(
-            [
-                [558, 30, -30],
-                [30, 819, 30],
-                [-30, 30, 1055]
-            ],
-            dtype=int
-        )
+        98.5621,
+        14.30824258387262
     ),
     'B': Sentinel2PlatformSpecs(
         '2017-013A',
         42063,
         267,
         date(2017, 3, 7),
-        np.array(
-            [
-                [558, 30, -30],
-                [30, 819, 30],
-                [-30, 30, 1055]
-            ],
-            dtype=int
-        )
+        98.5664,
+        14.30818491298178
+    ),
+    'C': Sentinel2PlatformSpecs(
+        '2024-157A',
+        60989,
+        None,
+        date(2024, 9, 5),
+        98.5713,
+        14.30826135
     ),
 }
 
+class Sentinel2Platform():
+    def __init__(self,
+                 index: str) -> None:
+        self.specs = S2_PLATFORM_SPECS[index]
 
 @dataclass
 class Sentinel2GNSSSpecs():

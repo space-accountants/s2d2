@@ -229,6 +229,24 @@ def get_bbox(geotransform, rows=None, cols=None):
     bbox = np.hstack((np.sort(X), np.sort(Y)))
     return bbox
 
+def get_max_pixel_spacing(geotransform):
+    """ calculate the maximum spacing between pixels
+
+    Parameters
+    ----------
+    geotransform : tuple, size={(6,1), (8,1)}
+        georeference transform of an image.
+
+    Returns
+    -------
+    spac : float, unit=meter
+        maximum spacing between pixels
+    """
+    geotransform = correct_geotransform(geotransform)
+    spac = np.maximum(np.hypot(geotransform[1], geotransform[2]),
+                      np.hypot(geotransform[4], geotransform[5]))
+    return spac
+
 def create_local_crs():
     """ create spatial refence of local horizontal datum
 

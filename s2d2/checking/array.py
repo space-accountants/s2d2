@@ -56,7 +56,7 @@ def correct_floating_parameter(a):
 
     Returns
     -------
-    float, int
+    float
     """
     if type(a) in (np.ma.core.MaskedArray, np.ndarray):
         assert a.size == 1, 'please provide one parameter'
@@ -68,6 +68,7 @@ def correct_floating_parameter(a):
     assert isinstance(a, (int, float)), 'please provide an integer'
     if isinstance(a, int):
         return float(a)
+    return a
 
 def make_same_size(old,
                    geotransform_old,

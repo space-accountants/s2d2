@@ -41,6 +41,14 @@ class Sentinel2Band():
         self.azimuth = None
         self.timing = None
 
+    def read_detector_mask(self, path: Path):
+        f_full = os.path.join(path, f'MSK_DETFOO_{self.index}.gml')
+        if os.path.exists(f_full):
+            self.read_detector_gml(path)
+        else:
+            self.read_detector_jp2(os.path.splitext(f_full)[0] + '.jp2')
+        return
+
     def read_detector_gml(self, path: Path):
         det_msk = np.zeros((self.rows, self.columns), dtype='int8')
 
@@ -59,6 +67,16 @@ class Sentinel2Band():
             msk = np.array(msk)
             det_msk = np.maximum(det_msk, msk)
         self.detector = det_msk
+
+    def read_detector_jp2(self, path: Path):
+        img = gdal.Open(path)
+        assert img is not None, ('could not open dataset ' + path)
+
+        det_num = np.array(img.GetRasterBand(1).ReadAsArray(), dtype=np.uint8)
+        no_dat = img.GetRasterBand(1).GetNoDataValue()
+        np.putmask(det_num, det_num == no_dat, 0)
+
+        self.detector = det_num
 
     def read_band(self,
                   path: Path,
@@ -107,3 +125,5 @@ class Sentinel2Band():
 
         self.digitalnumbers = dn_to_toa(self.digitalnumbers)
         self.unit = 'TOA'
+
+#class Sentinel2Cloudmask(): resolution = {10,20,60} legend = {0: 'iets'}

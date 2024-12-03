@@ -8,12 +8,14 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
+from .eo_imagery import bandCollection
 from .image_coordinate_tools import pix_centers
 from .mapping_tools import map2ll, ecef2llh
 from .checking.mapping import (
     correct_geotransform, lat_lon_angle_check, is_crs_an_srs)
 from .checking.array import (
     are_two_arrays_equal, are_three_arrays_equal)
+from .sentinel2_band import Sentinel2Band
 from .sentinel2_grid import Sentinel2Anglegrid
 
 
@@ -129,8 +131,8 @@ def estimate_inclination_via_xyz_uvw(xyz, uvw):
     return i
 
 def calculate_correct_mapping(grid: Sentinel2Anglegrid,
-                              inclination:float = 98.5621,
-                              revolutions_per_day:float = 14.30824258387262,
+                              inclination: float = 98.5621,
+                              revolutions_per_day: float = 14.30824258387262,
                               radius: Optional[float] = None,
                               mean_altitude: Optional[float] = None):
     """
@@ -211,71 +213,57 @@ def calculate_correct_mapping(grid: Sentinel2Anglegrid,
 
     return lat, lon, radius, inclination, period, time_para, combos
 
-def remap_observation_angles(lat, lon, radius, inclination, period,
-                             time_para, combos, x_grd, y_grd, det_stack,
-                             bnd_list, geotransform, crs):
-    if type(bnd_list) in (pd.core.frame.DataFrame,):
-        bnd_list = np.asarray(bnd_list['bandid'])
-        bnd_list -= 1 # numbering of python starts at 0
-    lat,lon = lat_lon_angle_check(lat,lon)
-    are_two_arrays_equal(x_grd,y_grd)
-    geotransform = correct_geotransform(geotransform)
-
-    m,n = x_grd.shape
-
-    omega_0,lon_0 = _omega_lon_calculation(np.deg2rad(lat), np.deg2rad(lon),
-                                           inclination)
-
+def remap_observation_angles(grid: Sentinel2Anglegrid,
+                             bands: bandCollection,
+                             lat, lon, radius, inclination, period, time_para, combos):
     # reconstruct observation angles and sensing time
-    b = bnd_list.size
-    if type(det_stack) in (np.ma.core.MaskedArray,):
-        T, zn_arr, az_arr = np.ma.zeros((m,n,b)), np.ma.zeros((m,n,b)), \
-                    np.ma.zeros((m,n,b))
-    else:
-        T, zn_arr, az_arr = np.zeros((m,n,b)), np.zeros((m,n,b)), \
-                    np.zeros((m,n,b))
-    for idx, bnd in enumerate(bnd_list):
-        doi = combos[:,0]==bnd
-        if type(det_stack) in (np.ma.core.MaskedArray,):
-            dt_bnd, zn_bnd, az_bnd = -9999.*np.ma.ones((m,n)), \
-                                     -9999.*np.ma.ones((m,n)),\
-                                     -9999.*np.ma.ones((m,n))
-        else:
-            dt_bnd, zn_bnd, az_bnd = np.zeros((m,n)), np.zeros((m,n)), \
-                                     np.zeros((m,n))
+
+    lat,lon = lat_lon_angle_check(lat,lon)
+    omega_0,lon_0 = _omega_lon_calculation(np.deg2rad(lat), np.deg2rad(lon), inclination)
+
+    for band_id, band in bands.items():
+        if band.digitalnumbers is None: continue
+        band_num = int(band_id[1:])
+        doi = combos[:,0]==band_num
+
+        # create grids with map coordinates of the specific band
+        x_grd, y_grd = pix_centers(band.geotransform,
+                                   rows=band.rows,
+                                   cols=band.columns,
+                                   make_grid=True)
+        if band.timing is None: bands[band_id].timing = np.zeros_like(x_grd)
+        if band.azimuth is None: bands[band_id].azimuth = np.zeros_like(x_grd)
+        if band.zenith is None: bands[band_id].zenith = np.zeros_like(x_grd)
 
         for sca in combos[doi,1]:
-            ok = (det_stack[...,idx] == sca)
+            ok = (band.detector == sca)
             if not np.any(ok): continue
-            dx, dy = x_grd[ok]-geotransform[0], geotransform[3]-y_grd[ok]
+            dx, dy = (x_grd[ok]-grid.geotransform[0],
+                      grid.geotransform[3]-y_grd[ok])
 
             # time stamps
-            coef_id = np.where(np.logical_and(combos[:,0]==bnd,
+            coef_id = np.where(np.logical_and(combos[:,0]==band_num,
                                               combos[:,1]==sca))[0][0]
             coeffs = time_para[coef_id,:]
             dt = coeffs[0] + coeffs[1]*dx + coeffs[2]*dy + coeffs[3]*dx*dy
-            dt_bnd[ok] = dt
+            bands[band_id].timing[ok] = dt
             del dx, dy, coeffs, coef_id
-            # acquisition angles
-            p_x = orbital_calculation(dt, radius, inclination, period,
-                                     omega_0, lon_0) # satellite vector
 
-            ll_pix = map2ll(np.stack((x_grd[ok], y_grd[ok]), axis=1), crs)
+            # acquisition angles
+            p_x = orbital_calculation(dt, radius, inclination, period, omega_0, lon_0) # satellite vector
+
+            proj = osr.SpatialReference()
+            proj.ImportFromEPSG(band.epsg)
+            ll_pix = map2ll(np.stack((x_grd[ok], y_grd[ok]), axis=1), proj)
             g_x = np.transpose(ground_vec(ll_pix[:, 0], ll_pix[:, 1]))  # ground vector
             del ll_pix, dt
 
             zn, az = acquisition_angles(p_x,g_x)
-            zn_bnd[ok], az_bnd[ok] = zn, az
+            bands[band_id].zenith[ok] = zn
+            bands[band_id].azimuth[ok] = az
             del p_x,g_x
         # put estimates in stack
-
-        if type(det_stack) in (np.ma.core.MaskedArray,):
-            dt_bnd = np.ma.array(dt_bnd, mask=dt_bnd == -9999.)
-            zn_bnd = np.ma.array(zn_bnd, mask=zn_bnd == -9999.)
-            az_bnd = np.ma.array(az_bnd, mask=az_bnd == -9999.)
-        T[...,idx], zn_arr[...,idx], az_arr[...,idx] = dt_bnd, zn_bnd, az_bnd
-        del zn_bnd, az_bnd
-    return zn_arr, az_arr, T
+    return bands
 
 def get_absolute_timing(lat,lon,sat_dict):
     assert isinstance(sat_dict, dict), 'please provide a dictionary'
